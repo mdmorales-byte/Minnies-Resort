@@ -33,6 +33,10 @@ const Navbar = () => {
           <Link to="/contact" className="nav-link" onClick={() => setIsMenuOpen(false)}>
             Contact
           </Link>
+          <Link to="/admin/login" className="nav-link admin-link" onClick={() => setIsMenuOpen(false)}>
+            <i className="fas fa-user-shield"></i>
+            Admin
+          </Link>
         </div>
         
         <div 
