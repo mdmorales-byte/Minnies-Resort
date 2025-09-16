@@ -27,26 +27,42 @@ const SuperAdminLogin = () => {
     setError('');
     setLoading(true);
 
-    if (!username || !password) {
-      setError('Please enter both username and password');
+    // Basic validation
+    if (!username.trim()) {
+      setError('Username is required');
       setLoading(false);
       return;
     }
 
-    const result = login(username, password);
-
-    if (result.success) {
-      if (result.isSuperAdmin) {
-        navigate('/admin/super-dashboard');
-      } else {
-        navigate('/admin/dashboard');
-      }
-    } else {
-      setError(result.error || 'Invalid credentials');
-      setPassword('');
+    if (!password) {
+      setError('Password is required');
+      setLoading(false);
+      return;
     }
 
-    setLoading(false);
+    // Simulate loading time for better UX
+    setTimeout(() => {
+      const result = login(username.trim(), password);
+
+      if (result.success) {
+        if (result.isSuperAdmin) {
+          navigate('/admin/super-dashboard');
+        } else {
+          navigate('/admin/dashboard');
+        }
+      } else {
+        setError(result.error || 'Invalid username or password. Please check your credentials and try again.');
+        setPassword(''); // Clear password on error
+      }
+
+      setLoading(false);
+    }, 1000); // 1 second delay for demo purposes
+  };
+
+  const handleDemoLogin = (demoUsername, demoPassword) => {
+    setUsername(demoUsername);
+    setPassword(demoPassword);
+    setError('');
   };
 
   return (
@@ -55,9 +71,12 @@ const SuperAdminLogin = () => {
         <div className="login-card">
           <div className="login-header">
             <img
-              src="https://images.unsplash.com/photo-1560493676-04071c5f467b?w=200&h=200&fit=crop"
+              src="https://images.unsplash.com/photo-1560493676-04071c5f467b?w=200&h=200&fit=crop&crop=center"
               alt="Minnie's Farm Resort"
               className="login-logo"
+              onError={(e) => {
+                e.target.src = 'https://via.placeholder.com/200x200/4a7c59/ffffff?text=MFR';
+              }}
             />
             <h1>Admin Portal</h1>
             <p>Minnie's Farm Resort Management System</p>
@@ -66,7 +85,7 @@ const SuperAdminLogin = () => {
           <form onSubmit={handleSubmit} className="login-form">
             {error && (
               <div className="error-message">
-                <i className="fas fa-exclamation-circle"></i>
+                <i className="fas fa-exclamation-triangle"></i>
                 {error}
               </div>
             )}
@@ -84,6 +103,7 @@ const SuperAdminLogin = () => {
                 placeholder="Enter your username"
                 autoComplete="username"
                 disabled={loading}
+                required
               />
             </div>
 
@@ -101,12 +121,14 @@ const SuperAdminLogin = () => {
                   placeholder="Enter your password"
                   autoComplete="current-password"
                   disabled={loading}
+                  required
                 />
                 <button
                   type="button"
                   className="password-toggle"
                   onClick={() => setShowPassword(!showPassword)}
                   disabled={loading}
+                  title={showPassword ? 'Hide password' : 'Show password'}
                 >
                   <i className={`fas fa-eye${showPassword ? '-slash' : ''}`}></i>
                 </button>
@@ -158,11 +180,27 @@ const SuperAdminLogin = () => {
                 <p><strong>Super Admin:</strong></p>
                 <p>Username: superadmin</p>
                 <p>Password: MinniesFarm2025!</p>
+                <button 
+                  className="demo-login-btn"
+                  onClick={() => handleDemoLogin('superadmin', 'MinniesFarm2025!')}
+                  disabled={loading}
+                >
+                  <i className="fas fa-play"></i>
+                  Try Super Admin
+                </button>
               </div>
               <div className="credential-box">
                 <p><strong>Regular Admin:</strong></p>
                 <p>Username: admin</p>
                 <p>Password: admin123</p>
+                <button 
+                  className="demo-login-btn"
+                  onClick={() => handleDemoLogin('admin', 'admin123')}
+                  disabled={loading}
+                >
+                  <i className="fas fa-play"></i>
+                  Try Admin
+                </button>
               </div>
             </div>
           </div>

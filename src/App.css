@@ -1893,6 +1893,40 @@ section {
   font-size: 0.9rem;
 }
 
+.demo-login-btn {
+  background: linear-gradient(135deg, #4a7c59 0%, #6b9b7a 100%);
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  justify-content: center;
+}
+
+.demo-login-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6b9b7a 0%, #4a7c59 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(74, 124, 89, 0.3);
+}
+
+.demo-login-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.demo-login-btn i {
+  font-size: 0.8rem;
+}
+
 /* Enhanced Super Admin Dashboard Styling */
 .super-admin-dashboard {
   min-height: 100vh;
