@@ -9,7 +9,7 @@ const Home = () => {
         <div className="hero-overlay"></div>
         <div className="hero-content">
           <h1>Welcome to Minnie's Farm Resort</h1>
-          <p>Escape to tranquility in the heart of Camarines Norte</p>
+          <p>Escape to tranquility in the heart of Basud Camarines Norte</p>
           <p className="hero-subtitle">Where rustic charm meets modern comfort</p>
           <div className="hero-buttons">
             <Link to="/booking" className="btn btn-primary">Book Your Stay</Link>
