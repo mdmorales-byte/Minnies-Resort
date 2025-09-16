@@ -49,7 +49,7 @@ const Footer = () => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>&copy; 2024 Minnie's Farm Resort. All rights reserved. | Developed by Mick Daniel Q. Morales</p>
+          <p>&copy; 2025 Minnie's Farm Resort. All rights reserved. | Developed by Mick Daniel Q. Morales</p>
         </div>
       </div>
     </footer>
