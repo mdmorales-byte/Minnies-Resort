@@ -12,6 +12,7 @@ import Contact from './Contact';
 import AdminBookings from './AdminBookings';
 import SuperAdminLogin from './SuperAdminLogin';
 import SuperAdminDashboard from './SuperAdminDashboard';
+import AdminTest from './AdminTest';
 import './App.css';
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
                 <Route path="/admin/bookings" element={<AdminBookings />} />
                 <Route path="/admin/login" element={<SuperAdminLogin />} />
                 <Route path="/admin/super-dashboard" element={<SuperAdminDashboard />} />
+                <Route path="/admin/test" element={<AdminTest />} />
               </Routes>
             </main>
             <Footer />

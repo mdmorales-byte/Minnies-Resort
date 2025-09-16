@@ -3,8 +3,43 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 const SuperAdminDashboard = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, isAuthenticated, isSuperAdmin, loading } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if not authenticated or not super admin
+  useEffect(() => {
+    if (!loading) {
+      if (!isAuthenticated) {
+        navigate('/admin/login');
+      } else if (!isSuperAdmin) {
+        navigate('/admin/login');
+      }
+    }
+  }, [isAuthenticated, isSuperAdmin, loading, navigate]);
+
+  // Show loading while checking authentication
+  if (loading) {
+    return (
+      <div className="super-admin-dashboard">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          fontSize: '1.2rem',
+          color: '#4a7c59'
+        }}>
+          <i className="fas fa-spinner fa-spin" style={{ marginRight: '1rem' }}></i>
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated
+  if (!isAuthenticated || !isSuperAdmin) {
+    return null;
+  }
 
   const [stats, setStats] = useState({
     totalBookings: 0,
