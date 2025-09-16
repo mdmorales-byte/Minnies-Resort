@@ -1,70 +1,127 @@
-# Getting Started with Create React App
+# 🏡 Minnie's Farm Resort
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A beautiful, modern website for Minnie's Farm Resort - a peaceful retreat in Basud, Camarines Norte, Philippines.
 
-## Available Scripts
+![Minnie's Farm Resort](https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80)
 
-In the project directory, you can run:
+## 🌟 Features
 
-### `npm start`
+- **Modern React Frontend** - Built with React 18 and modern web technologies
+- **Responsive Design** - Beautiful on all devices (desktop, tablet, mobile)
+- **Interactive Booking System** - Easy reservation process with real-time cost calculation
+- **Image Gallery** - Stunning visuals showcasing the resort
+- **Contact Form** - Direct communication with the resort
+- **Admin Panel** - Booking management system
+- **Professional Styling** - Modern UI/UX with smooth animations
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+## 🚀 Live Demo
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Visit the live website: [Minnie's Farm Resort](https://your-domain.com)
 
-### `npm test`
+## 📱 Pages
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Home** - Hero section with resort overview and image gallery
+- **About** - Resort story and values
+- **Accommodations** - Day cottages and overnight stays with pricing
+- **Booking** - Interactive reservation form with cost calculator
+- **Contact** - Contact information and inquiry form
+- **Admin** - Booking management dashboard
 
-### `npm run build`
+## 🛠️ Technologies Used
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- **Frontend**: React 18, React Router, CSS3
+- **Styling**: Custom CSS with modern design patterns
+- **Icons**: Font Awesome
+- **Images**: High-quality Unsplash images
+- **Development**: Create React App
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## 🏗️ Installation & Setup
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/mdmorales-byte/Minnie-s-Farm-Resort.git
+   cd Minnie-s-Farm-Resort
+   ```
 
-### `npm run eject`
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+3. **Start the development server**
+   ```bash
+   npm start
+   ```
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+4. **Open your browser**
+   Navigate to `http://localhost:3000`
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+## 📦 Available Scripts
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+- `npm start` - Runs the app in development mode
+- `npm run build` - Builds the app for production
+- `npm test` - Launches the test runner
+- `npm run eject` - Ejects from Create React App (one-way operation)
 
-## Learn More
+## 🎨 Design Features
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- **Color Scheme**: Sage green and burnt orange for a natural, warm feel
+- **Typography**: Modern, readable fonts with proper hierarchy
+- **Animations**: Smooth transitions and hover effects
+- **Layout**: Grid-based responsive design
+- **Images**: Professional photography showcasing the resort
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+## 📋 Booking System
 
-### Code Splitting
+The website includes a comprehensive booking system with:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+- **Accommodation Types**: Day cottages (₱500/day) and overnight stays (₱1,000/night)
+- **Add-ons**: Karaoke facilities (₱500/session)
+- **Entrance Fee**: ₱100 per person
+- **Real-time Cost Calculation**: Automatic total calculation
+- **Form Validation**: Required field validation
+- **Booking Summary**: Live preview of booking details
 
-### Analyzing the Bundle Size
+## 📞 Contact Information
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+- **Phone**: 09666619229
+- **Email**: info@minniesfarmresort.com
+- **Location**: Purok 1, Matnog, Basud, 4608 Camarines Norte, Philippines
+- **Hours**: Available daily 8:00 AM - 8:00 PM
 
-### Making a Progressive Web App
+## 🌿 About Minnie's Farm Resort
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Minnie's Farm Resort is a family-run business offering a peaceful retreat in the heart of Camarines Norte. We provide:
 
-### Advanced Configuration
+- **Day Cottages** for family gatherings and celebrations
+- **Overnight Accommodations** for weekend getaways
+- **Farm Activities** and nature experiences
+- **Karaoke Facilities** for entertainment
+- **Fresh Air** and beautiful mountain views
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+## 🤝 Contributing
 
-### Deployment
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+## 📄 License
 
-### `npm run build` fails to minify
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+## 👨‍💻 Author
+
+**Mick Daniel Q. Morales**
+- GitHub: [@mdmorales-byte](https://github.com/mdmorales-byte)
+
+## 🙏 Acknowledgments
+
+- Images provided by [Unsplash](https://unsplash.com)
+- Icons by [Font Awesome](https://fontawesome.com)
+- Built with [Create React App](https://create-react-app.dev)
+
+---
+
+**Visit Minnie's Farm Resort** - Your peaceful retreat in Camarines Norte! 🏡✨

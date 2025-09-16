@@ -1,23 +1,36 @@
-import logo from './logo.svg';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Navbar from './Navbar';
+import Footer from './Footer';
+import Home from './Home';
+import About from './About';
+import Accommodations from './Accommodations';
+import Booking from './Booking';
+import BookingSuccess from './BookingSuccess';
+import Contact from './Contact';
+import AdminBookings from './AdminBookings';
 import './App.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f8f9fa' }}>
+      <Router>
+        <div className="App">
+          <Navbar />
+          <main>
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/accommodations" element={<Accommodations />} />
+              <Route path="/booking" element={<Booking />} />
+              <Route path="/booking-success/:id" element={<BookingSuccess />} />
+              <Route path="/contact" element={<Contact />} />
+              <Route path="/admin/bookings" element={<AdminBookings />} />
+            </Routes>
+          </main>
+          <Footer />
+        </div>
+      </Router>
     </div>
   );
 }
