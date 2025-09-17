@@ -2826,13 +2826,14 @@ p {
 }
 
 .btn-large {
-  width: 100%;
-  padding: 1.5rem 2rem;
-  font-size: 1.2rem;
-  font-weight: 800;
+  width: auto;
+  max-width: 300px;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1.5px;
-  border-radius: 16px;
+  letter-spacing: 1px;
+  border-radius: 12px;
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
@@ -2840,8 +2841,10 @@ p {
   color: white;
   border: none;
   box-shadow: 
-    0 8px 25px rgba(230, 126, 34, 0.3),
-    0 4px 12px rgba(0, 0, 0, 0.1);
+    0 6px 20px rgba(230, 126, 34, 0.3),
+    0 3px 8px rgba(0, 0, 0, 0.2);
+  margin: 0 auto;
+  display: block;
 }
 
 .btn-large::before {
@@ -2860,10 +2863,10 @@ p {
 }
 
 .btn-large:hover:not(:disabled) {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow: 
-    0 12px 35px rgba(230, 126, 34, 0.4),
-    0 8px 20px rgba(0, 0, 0, 0.15);
+    0 8px 25px rgba(230, 126, 34, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.2);
   background: linear-gradient(135deg, #f39c12 0%, #e67e22 50%, #d2691e 100%);
 }
 
