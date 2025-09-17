@@ -925,7 +925,7 @@ p {
 
 /* Revolutionary Hero Section */
 .hero {
-  background: linear-gradient(135deg, rgba(26, 71, 42, 0.85) 0%, rgba(74, 124, 89, 0.75) 50%, rgba(107, 155, 122, 0.65) 100%), 
+  background: linear-gradient(135deg, rgba(26, 71, 42, 0.9) 0%, rgba(74, 124, 89, 0.85) 50%, rgba(107, 155, 122, 0.8) 100%), 
               url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80');
   background-size: cover;
   background-position: center;
@@ -988,33 +988,39 @@ p {
   font-size: clamp(3rem, 8vw, 6rem);
   margin-bottom: 2rem;
   font-weight: 900;
-  text-shadow: 2px 4px 8px rgba(0,0,0,0.5);
+  color: #ffffff;
+  text-shadow: 
+    3px 3px 0px rgba(0,0,0,0.8),
+    6px 6px 12px rgba(0,0,0,0.6),
+    0 0 20px rgba(255,255,255,0.3);
   animation: heroSlideUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 50%, #e9ecef 100%);
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(2px 4px 8px rgba(0,0,0,0.5));
   line-height: 1.1;
+  letter-spacing: -1px;
 }
 
 .hero p {
   font-size: clamp(1.2rem, 3vw, 1.6rem);
   margin-bottom: 1.5rem;
-  opacity: 0.95;
+  color: #ffffff;
   animation: heroSlideUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.2s both;
-  font-weight: 400;
-  text-shadow: 1px 2px 4px rgba(0,0,0,0.3);
+  font-weight: 500;
+  text-shadow: 
+    2px 2px 0px rgba(0,0,0,0.7),
+    4px 4px 8px rgba(0,0,0,0.5),
+    0 0 15px rgba(255,255,255,0.2);
 }
 
 .hero-subtitle {
   font-size: clamp(1rem, 2.5vw, 1.3rem);
   margin-bottom: 3rem;
-  opacity: 0.9;
+  color: #ffffff;
   animation: heroSlideUp 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.4s both;
-  font-weight: 300;
+  font-weight: 400;
   font-style: italic;
-  text-shadow: 1px 2px 4px rgba(0,0,0,0.3);
+  text-shadow: 
+    2px 2px 0px rgba(0,0,0,0.6),
+    3px 3px 6px rgba(0,0,0,0.4),
+    0 0 10px rgba(255,255,255,0.15);
 }
 
 .hero-buttons {
@@ -1138,15 +1144,25 @@ p {
 }
 
 .btn-primary {
-  background: var(--gradient-secondary);
+  background: linear-gradient(135deg, #e67e22 0%, #d2691e 50%, #c0392b 100%);
+  color: #ffffff;
+  box-shadow: 
+    0 8px 25px rgba(230, 126, 34, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.1);
 }
 
 .btn-secondary {
-  background: transparent;
-  border: 3px solid rgba(255,255,255,0.8);
-  color: white;
-  box-shadow: 0 8px 30px rgba(255,255,255,0.15);
-  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.15);
+  border: 3px solid rgba(255,255,255,0.9);
+  color: #ffffff;
+  box-shadow: 
+    0 8px 30px rgba(255,255,255,0.25),
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  backdrop-filter: blur(15px);
+  text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
 }
 
 .btn-secondary:hover {
