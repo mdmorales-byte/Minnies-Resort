@@ -1322,6 +1322,35 @@ p {
   font-weight: 400;
 }
 
+/* Accommodations Preview Section (Home Page) */
+.accommodations-preview {
+  background: var(--white);
+  position: relative;
+  padding: 8rem 0;
+  overflow: hidden;
+}
+
+.accommodations-preview::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(135deg, transparent 0%, rgba(26, 71, 42, 0.02) 50%, transparent 100%),
+    radial-gradient(circle at 20% 20%, rgba(230, 126, 34, 0.05) 0%, transparent 50%);
+}
+
+.accommodations-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 3rem;
+  margin-top: 4rem;
+  position: relative;
+  z-index: 2;
+}
+
 /* Revolutionary Accommodations */
 .accommodations {
   background: var(--white);
@@ -1353,12 +1382,12 @@ p {
 
 .accommodation-card {
   background: var(--white);
-  border-radius: 30px;
+  border-radius: 25px;
   overflow: hidden;
   box-shadow: 
-    0 25px 70px rgba(0, 0, 0, 0.1),
-    0 10px 30px rgba(0, 0, 0, 0.05);
-  transition: all 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    0 20px 60px rgba(0, 0, 0, 0.08),
+    0 8px 25px rgba(0, 0, 0, 0.05);
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   border: 1px solid rgba(0,0,0,0.05);
   overflow: hidden;
@@ -1381,11 +1410,18 @@ p {
   opacity: 0.03;
 }
 
-.accommodation-card:hover {
-  transform: translateY(-20px) rotateX(5deg) rotateY(5deg);
+.accommodation-card.featured {
+  border: 2px solid #e67e22;
   box-shadow: 
-    0 40px 100px rgba(0, 0, 0, 0.15),
-    0 20px 50px rgba(0, 0, 0, 0.1);
+    0 25px 70px rgba(230, 126, 34, 0.15),
+    0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.accommodation-card:hover {
+  transform: translateY(-10px) scale(1.02);
+  box-shadow: 
+    0 30px 80px rgba(0, 0, 0, 0.12),
+    0 15px 40px rgba(0, 0, 0, 0.08);
 }
 
 /* Detailed Accommodation Cards */
@@ -1408,6 +1444,25 @@ p {
   box-shadow: 
     0 25px 70px rgba(230, 126, 34, 0.15),
     0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.featured-badge {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  background: linear-gradient(135deg, #e67e22 0%, #d2691e 50%, #c0392b 100%);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  z-index: 10;
+  box-shadow: 
+    0 4px 15px rgba(230, 126, 34, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .featured-badge-large {
@@ -1487,10 +1542,28 @@ p {
   50% { transform: translateY(-10px); }
 }
 
+/* Accommodation Image (Home Page) */
+.accommodation-image {
+  position: relative;
+  height: 200px;
+  background: linear-gradient(135deg, #4a7c59 0%, #6b9b7a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.accommodation-icon {
+  font-size: 4rem;
+  color: white;
+  text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  animation: iconFloat 3s ease-in-out infinite;
+}
+
 /* Enhanced Accommodation Content */
 .accommodation-content,
 .accommodation-details {
-  padding: 3rem;
+  padding: 2.5rem;
   position: relative;
   z-index: 2;
 }
@@ -1528,6 +1601,30 @@ p {
   margin-bottom: 2rem;
   line-height: 1.8;
   font-size: 1.1rem;
+}
+
+/* Amenities List (Home Page) */
+.amenities {
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+}
+
+.amenities li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  color: var(--medium-text);
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.amenities li i {
+  color: #e67e22;
+  font-size: 1rem;
+  width: 16px;
+  text-align: center;
 }
 
 /* Enhanced Amenities Grid */
