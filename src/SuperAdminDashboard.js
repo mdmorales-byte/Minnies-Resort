@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import ResortImageManager from './ResortImageManager';
 
 const SuperAdminDashboard = () => {
   const { user, logout, isAuthenticated, isSuperAdmin, loading } = useAuth();
@@ -49,11 +50,14 @@ const SuperAdminDashboard = () => {
     todayBookings: 0,
     monthlyRevenue: 0,
     occupancyRate: 0,
-    averageStayDuration: 0
+    averageStayDuration: 0,
+    totalImages: 0,
+    heroImages: 0
   });
 
   const [recentActivities, setRecentActivities] = useState([]);
   const [revenueChart, setRevenueChart] = useState([]);
+  const [activeSection, setActiveSection] = useState('dashboard');
 
   useEffect(() => {
     loadDashboardData();
@@ -62,6 +66,9 @@ const SuperAdminDashboard = () => {
   const loadDashboardData = () => {
     // Load bookings from localStorage
     const storedBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
+    
+    // Load resort images from localStorage
+    const storedImages = JSON.parse(localStorage.getItem('resortImages') || '[]');
 
     // Calculate statistics
     const today = new Date().toDateString();
@@ -79,13 +86,15 @@ const SuperAdminDashboard = () => {
         .filter(b => new Date(b.checkIn).getMonth() === currentMonth)
         .reduce((sum, b) => sum + (b.totalCost || 0), 0),
       occupancyRate: calculateOccupancyRate(storedBookings),
-      averageStayDuration: calculateAverageStayDuration(storedBookings)
+      averageStayDuration: calculateAverageStayDuration(storedBookings),
+      totalImages: storedImages.length,
+      heroImages: storedImages.filter(img => img.isHero).length
     };
 
     setStats(stats);
 
     // Generate recent activities
-    const activities = generateRecentActivities(storedBookings);
+    const activities = generateRecentActivities(storedBookings, storedImages);
     setRecentActivities(activities);
 
     // Generate revenue chart data
@@ -113,9 +122,9 @@ const SuperAdminDashboard = () => {
     return (totalDays / bookingsWithDuration.length).toFixed(1);
   };
 
-  const generateRecentActivities = (bookings) => {
-    return bookings
-      .slice(-5)
+  const generateRecentActivities = (bookings, images) => {
+    const bookingActivities = bookings
+      .slice(-3)
       .reverse()
       .map(booking => ({
         id: booking.id,
@@ -124,6 +133,19 @@ const SuperAdminDashboard = () => {
         time: new Date(booking.createdAt || Date.now()).toLocaleString(),
         status: booking.status
       }));
+
+    const imageActivities = images
+      .slice(-2)
+      .reverse()
+      .map(image => ({
+        id: image.id,
+        type: 'image',
+        description: `Image "${image.name}" uploaded`,
+        time: new Date(image.uploadDate).toLocaleString(),
+        status: 'uploaded'
+      }));
+
+    return [...imageActivities, ...bookingActivities].slice(0, 5);
   };
 
   const generateRevenueChartData = (bookings) => {
@@ -159,6 +181,13 @@ const SuperAdminDashboard = () => {
       link: '/admin/bookings',
       color: 'primary',
       description: 'View and manage all reservations'
+    },
+    {
+      title: 'Resort Images',
+      icon: 'fa-images',
+      action: () => setActiveSection('images'),
+      color: 'secondary',
+      description: 'Upload and manage resort photos'
     },
     {
       title: 'User Management',
@@ -210,8 +239,32 @@ const SuperAdminDashboard = () => {
         </div>
       </header>
 
-      {/* Stats Overview */}
-      <section className="stats-overview">
+      {/* Navigation Breadcrumb */}
+      {activeSection !== 'dashboard' && (
+        <section className="breadcrumb-section">
+          <div className="container">
+            <div className="breadcrumb">
+              <button 
+                onClick={() => setActiveSection('dashboard')}
+                className="breadcrumb-item"
+              >
+                <i className="fas fa-home"></i>
+                Dashboard
+              </button>
+              <span className="breadcrumb-separator">/</span>
+              <span className="breadcrumb-current">
+                {activeSection === 'images' && 'Image Manager'}
+              </span>
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* Conditional Content */}
+      {activeSection === 'dashboard' ? (
+        <>
+          {/* Stats Overview */}
+          <section className="stats-overview">
         <div className="container">
           <h2>Overview</h2>
           <div className="stats-grid">
@@ -264,6 +317,19 @@ const SuperAdminDashboard = () => {
                 </span>
               </div>
             </div>
+
+            <div className="stat-card">
+              <div className="stat-icon" style={{ backgroundColor: '#E91E63' }}>
+                <i className="fas fa-images"></i>
+              </div>
+              <div className="stat-content">
+                <h3>{stats.totalImages}</h3>
+                <p>Resort Images</p>
+                <span className="stat-change">
+                  {stats.heroImages} hero images
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -274,16 +340,34 @@ const SuperAdminDashboard = () => {
           <h2>Quick Actions</h2>
           <div className="actions-grid">
             {quickActions.map((action, index) => (
-              <Link to={action.link} key={index} className={`action-card action-${action.color}`}>
-                <div className="action-icon">
-                  <i className={`fas ${action.icon}`}></i>
-                </div>
-                <h3>{action.title}</h3>
-                <p>{action.description}</p>
-                <span className="action-arrow">
-                  <i className="fas fa-arrow-right"></i>
-                </span>
-              </Link>
+              action.link ? (
+                <Link to={action.link} key={index} className={`action-card action-${action.color}`}>
+                  <div className="action-icon">
+                    <i className={`fas ${action.icon}`}></i>
+                  </div>
+                  <h3>{action.title}</h3>
+                  <p>{action.description}</p>
+                  <span className="action-arrow">
+                    <i className="fas fa-arrow-right"></i>
+                  </span>
+                </Link>
+              ) : (
+                <button 
+                  key={index} 
+                  onClick={action.action}
+                  className={`action-card action-${action.color}`}
+                  style={{ border: 'none', background: 'none', cursor: 'pointer', width: '100%' }}
+                >
+                  <div className="action-icon">
+                    <i className={`fas ${action.icon}`}></i>
+                  </div>
+                  <h3>{action.title}</h3>
+                  <p>{action.description}</p>
+                  <span className="action-arrow">
+                    <i className="fas fa-arrow-right"></i>
+                  </span>
+                </button>
+              )
             ))}
           </div>
         </div>
@@ -335,7 +419,7 @@ const SuperAdminDashboard = () => {
                     recentActivities.map((activity, index) => (
                       <div key={index} className="activity-item">
                         <div className="activity-icon">
-                          <i className="fas fa-calendar-plus"></i>
+                          <i className={`fas ${activity.type === 'booking' ? 'fa-calendar-plus' : 'fa-image'}`}></i>
                         </div>
                         <div className="activity-content">
                           <p>{activity.description}</p>
@@ -389,6 +473,10 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
       </section>
+        </>
+      ) : activeSection === 'images' ? (
+        <ResortImageManager />
+      ) : null}
     </div>
   );
 };
