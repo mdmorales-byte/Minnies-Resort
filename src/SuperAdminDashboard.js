@@ -148,6 +148,13 @@ const SuperAdminDashboard = () => {
       action: () => navigate('/admin/users')
     },
     {
+      id: 'analytics-dashboard',
+      title: 'Analytics Dashboard',
+      description: 'View reports, analytics, and business insights',
+      icon: 'fas fa-chart-line',
+      action: () => navigate('/admin/dashboard')
+    },
+    {
       id: 'manage-images',
       title: 'Manage Images',
       description: 'Upload and organize resort images',

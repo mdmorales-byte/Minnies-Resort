@@ -14,6 +14,7 @@ import Contact from './Contact';
 import AdminBookings from './AdminBookings';
 import ContactMessages from './ContactMessages';
 import UserManagement from './UserManagement';
+import AdminDashboard from './AdminDashboard';
 import SimpleAdminLogin from './SimpleAdminLogin';
 import SuperAdminDashboard from './SuperAdminDashboard';
 import AdminTest from './AdminTest';
@@ -43,6 +44,7 @@ function AppContent() {
           <Route path="/admin/bookings" element={<AdminBookings />} />
           <Route path="/admin/messages" element={<ContactMessages />} />
           <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/login" element={<SimpleAdminLogin />} />
           <Route path="/admin/super-dashboard" element={<SuperAdminDashboard />} />
           <Route path="/admin/test" element={<AdminTest />} />
