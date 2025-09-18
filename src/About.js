@@ -24,7 +24,7 @@ const About = () => {
               <p>We are a family-run business, and we pour our hearts into every detail to ensure your stay is unforgettable. From the fresh-picked produce to the serene landscapes, every part of our resort is designed to make you feel at home.</p>
             </div>
             <div className="story-image">
-              <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+              <img src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/473332773_1162408192555544_5085407468956494349_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeEpHuuuo4hZ58UfGFljQCdD1IEvZT4276nUgS9lPjbvqehEnbqW2hug8HjPZM-75fvCNheGacts-LoGT5E3LCM0&_nc_ohc=Y0NRs_7ccc4Q7kNvwHCqQJy&_nc_oc=AdknfBqeG1kD6iXXjx7haor84_VED1C9EaqdOfB1-VgR9lyPekd-abN1ZKpHbg_5w98&_nc_zt=23&_nc_ht=scontent.fmnl13-2.fna&_nc_gid=C1SvSLPjYNg6ZzBT150EBA&oh=00_AfayoX2o3DMOZwx7YOC3H3_mPqqxpgwqRc-iLPx1c7cBGA&oe=68D14135" 
                    alt="Beautiful farm resort landscape" />
               <div className="image-overlay-text">
                 <i className="fas fa-seedling"></i>
@@ -76,7 +76,10 @@ const About = () => {
           <div className="team-grid">
             <div className="team-member">
               <div className="member-avatar">
-                <i className="fas fa-user"></i>
+                <img 
+                  src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/473332773_1162408192555544_5085407468956494349_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeEpHuuuo4hZ58UfGFljQCdD1IEvZT4276nUgS9lPjbvqehEnbqW2hug8HjPZM-75fvCNheGacts-LoGT5E3LCM0&_nc_ohc=Y0NRs_7ccc4Q7kNvwHCqQJy&_nc_oc=AdknfBqeG1kD6iXXjx7haor84_VED1C9EaqdOfB1-VgR9lyPekd-abN1ZKpHbg_5w98&_nc_zt=23&_nc_ht=scontent.fmnl13-2.fna&_nc_gid=C1SvSLPjYNg6ZzBT150EBA&oh=00_AfayoX2o3DMOZwx7YOC3H3_mPqqxpgwqRc-iLPx1c7cBGA&oe=68D14135" 
+                  alt="The Minnie's Family - Resort Owners" 
+                />
               </div>
               <h3>The Minnie's Family</h3>
               <p className="role">Resort Owners & Operators</p>
@@ -84,7 +87,10 @@ const About = () => {
             </div>
             <div className="team-member">
               <div className="member-avatar">
-                <i className="fas fa-laptop-code"></i>
+                <img 
+                  src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/473332773_1162408192555544_5085407468956494349_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeEpHuuuo4hZ58UfGFljQCdD1IEvZT4276nUgS9lPjbvqehEnbqW2hug8HjPZM-75fvCNheGacts-LoGT5E3LCM0&_nc_ohc=Y0NRs_7ccc4Q7kNvwHCqQJy&_nc_oc=AdknfBqeG1kD6iXXjx7haor84_VED1C9EaqdOfB1-VgR9lyPekd-abN1ZKpHbg_5w98&_nc_zt=23&_nc_ht=scontent.fmnl13-2.fna&_nc_gid=C1SvSLPjYNg6ZzBT150EBA&oh=00_AfayoX2o3DMOZwx7YOC3H3_mPqqxpgwqRc-iLPx1c7cBGA&oe=68D14135" 
+                  alt="Mick Daniel Q. Morales - IT Developer" 
+                />
               </div>
               <h3>Mick Daniel Q. Morales</h3>
               <p className="role">IT Developer</p>
