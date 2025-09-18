@@ -19,7 +19,7 @@ const Accommodations = () => {
             {/* Day Cottage */}
             <div className="accommodation-detail-card">
               <div className="accommodation-image-large">
-                <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+                <img src="https://scontent.fmnl13-1.fna.fbcdn.net/v/t39.30808-6/473356641_1162407132555650_3248649933642473042_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeHoo5ZoqMunhHupgYD_L3ZX22VcfM_KsRvbZVx8z8qxG87Qmy1t3JMCeNdEozxaobzNKZGnlXYixczxPr9Dw66-&_nc_ohc=-F_2C1kyS-IQ7kNvwFQXrEA&_nc_oc=Admi9FZ9garKCmBxSFA_ye4ivSLfBg1ehuayzutfSW2w_xJpiSDK-IYioqhVLi3ueEQ&_nc_zt=23&_nc_ht=scontent.fmnl13-1.fna&_nc_gid=FTztXPwBYde1BXq-TeX6FQ&oh=00_AfbkLbFrPqgeME4r_MDEmml3X7O-LTfiVnxHTJst9eX99Q&oe=68D103CD" 
                      alt="Beautiful cottage in nature" />
                 <div className="image-overlay">
                   <i className="fas fa-home accommodation-icon-large"></i>

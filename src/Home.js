@@ -115,15 +115,15 @@ const Home = () => {
             <p>Take a visual journey through our peaceful farm retreat</p>
           </div>
           <div className="gallery-grid">
-            <div className="gallery-item large">
-              <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+            <div className="gallery-item large">s
+              <img src="https://scontent.fmnl13-1.fna.fbcdn.net/v/t39.30808-6/473279631_1162407319222298_3157887554447691841_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeHG7chOB1qLPb0K-GcEfZ757VkhxZzcvxLtWSHFnNy_Ev4HCP9Gou4biF0OB2jJS6CB5YHb48FgErB7EG8_clIs&_nc_ohc=bvA8-Frwo9kQ7kNvwHjlcj6&_nc_oc=AdnDsox8ItBvhGmyJNmvmZngaHrQC2iEWOoj9LttUuN1jTZQKhZvuN_cVR4VU2CE8EA&_nc_zt=23&_nc_ht=scontent.fmnl13-1.fna&_nc_gid=R6Hr81LV-V6I9efW4OJEcA&oh=00_AfZFs1tBRLRLpb7FMptybZBfbrc9KrgviaUbI2fBIk_AHQ&oe=68D10219" 
                    alt="Beautiful farm landscape" />
               <div className="gallery-overlay">
                 <h3>Peaceful Farm Views</h3>
               </div>
             </div>
             <div className="gallery-item">
-              <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+              <img src="https://scontent.fmnl13-1.fna.fbcdn.net/v/t39.30808-6/473601760_1162408165888880_5260501943824600745_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeHYmn4U1mqwRG9n8T0ttDia4uymHoYoo2Xi7KYehiijZXiuaNGU32GvE2VpOBWD15ykK7iTUUgetAVpB4CGAPeQ&_nc_ohc=M6LaOvAC08AQ7kNvwFImXnj&_nc_oc=Adn81Qb9nfjt-Q2PeWCD3HraM6ec-Q7x9ZuUg6yfa5qvPzn3R7ZYe8CnVQOAWGMIf-Q&_nc_zt=23&_nc_ht=scontent.fmnl13-1.fna&_nc_gid=EH4cBIoKBZqgw4DRU-YZpg&oh=00_AfbCc-sW02FqWc5yQSW8zBuNBduXt7_mryn7rhj242Oghw&oe=68D1087A" 
                    alt="Cozy cottage accommodation" />
               <div className="gallery-overlay">
                 <h3>Cozy Cottages</h3>
@@ -144,7 +144,7 @@ const Home = () => {
               </div>
             </div>
             <div className="gallery-item">
-              <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+              <img src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/473999168_979735860690358_3748154750094226236_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeF2r-yzt4mCUTRcZkhJ8TbPCJTHxG1CxDwIlMfEbULEPLkpSizFZ19fNp-aibk6j9F6K-TdB-Z3nwsKlJ9abZ03&_nc_ohc=a_E33TQZ3ukQ7kNvwFNl5DI&_nc_oc=AdkxkwnU4wcjJ8SOY69X0uZZT1dKppZFaKHRwM4Lu6yJMKfFCb9KztXvVQ2zze6M220&_nc_zt=23&_nc_ht=scontent.fmnl13-2.fna&_nc_gid=VdJUe97VutxqZvC-LSaRqQ&oh=00_AfawyB5dsnGKQGO5JxutfHgVlE5JkDGkmWUDw8FH3cMwCg&oe=68D10DA6" 
                    alt="Family activities" />
               <div className="gallery-overlay">
                 <h3>Family Activities</h3>

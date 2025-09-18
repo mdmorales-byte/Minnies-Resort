@@ -1,25 +1,28 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
 const SimpleAdminLogin = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = (e) => {
     e.preventDefault();
     
     if (username === 'superadmin' && password === 'MinniesFarm2025!') {
-      // Store auth in localStorage
-      localStorage.setItem('minniesAuth', JSON.stringify({
-        user: { username: 'superadmin', email: 'admin@minniesfarmresort.com', role: 'superadmin' },
-        isSuperAdmin: true,
-        expiry: Date.now() + (24 * 60 * 60 * 1000)
-      }));
-      alert('Super Admin login successful! Redirecting to dashboard...');
-      navigate('/admin/super-dashboard');
+      // Use AuthContext login function
+      const success = login(username, password);
+      if (success) {
+        alert('Super Admin login successful! Redirecting to dashboard...');
+        navigate('/admin/super-dashboard');
+      } else {
+        setError('Login failed. Please try again.');
+      }
     } else if (username === 'admin' && password === 'admin123') {
+      // For regular admin, we'll handle it manually since AuthContext only handles super admin
       localStorage.setItem('minniesAuth', JSON.stringify({
         user: { username: 'admin', email: 'staff@minniesfarmresort.com', role: 'admin' },
         isSuperAdmin: false,
