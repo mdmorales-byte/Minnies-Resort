@@ -216,25 +216,23 @@ const SuperAdminDashboard = () => {
     <div className="super-admin-dashboard">
       {/* Header */}
       <header className="admin-header-bar">
-        <div className="container">
-          <div className="header-content">
-            <div className="header-left">
-              <h1>
-                <i className="fas fa-shield-alt"></i>
-                Super Admin Dashboard
-              </h1>
-              <p>Welcome back, {user?.username}</p>
-            </div>
-            <div className="header-right">
-              <span className="user-info">
-                <i className="fas fa-user-shield"></i>
-                {user?.email}
-              </span>
-              <button onClick={handleLogout} className="btn btn-logout">
-                <i className="fas fa-sign-out-alt"></i>
-                Logout
-              </button>
-            </div>
+        <div className="header-content">
+          <div className="header-left">
+            <h1>
+              <i className="fas fa-shield-alt"></i>
+              Super Admin Dashboard
+            </h1>
+            <p>Welcome back, {user?.username}</p>
+          </div>
+          <div className="header-right">
+            <span className="user-info">
+              <i className="fas fa-user-shield"></i>
+              {user?.email}
+            </span>
+            <button onClick={handleLogout} className="btn btn-logout">
+              <i className="fas fa-sign-out-alt"></i>
+              Logout
+            </button>
           </div>
         </div>
       </header>

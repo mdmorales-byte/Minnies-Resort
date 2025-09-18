@@ -3840,6 +3840,8 @@ p {
   padding: 0 2rem;
   position: relative;
   z-index: 1;
+  width: 100%;
+  min-height: 80px;
 }
 
 .header-left h1 {
@@ -3872,10 +3874,12 @@ p {
   align-items: center;
   gap: 1.5rem;
   background: rgba(255, 255, 255, 0.1);
-  padding: 1.5rem 2rem;
+  padding: 1rem 1.5rem;
   border-radius: 20px;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .user-info {
@@ -4385,6 +4389,63 @@ p {
   font-size: 0.9rem;
   color: #4caf50;
   font-weight: 500;
+}
+
+/* Responsive Design for Admin Dashboard */
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    min-height: auto;
+  }
+  
+  .header-left h1 {
+    font-size: 2rem;
+    text-align: center;
+  }
+  
+  .header-right {
+    width: 100%;
+    justify-content: center;
+    padding: 1rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .actions-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .widgets-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .status-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-left h1 {
+    font-size: 1.5rem;
+  }
+  
+  .header-right {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .user-info {
+    font-size: 0.9rem;
+  }
+  
+  .btn-logout {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
 }
 
 /* Breadcrumb Navigation */
