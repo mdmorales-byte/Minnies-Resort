@@ -3822,7 +3822,7 @@ p {
 .admin-header-bar {
   background: linear-gradient(135deg, #1a2f0d 0%, #2d5016 25%, #4a7c59 75%, #6b9b7a 100%);
   color: white;
-  padding: 2rem 0;
+    padding: 2rem 0;
   margin-bottom: 2rem;
   position: relative;
   overflow: hidden;

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { bookingsAPI } from './services/api';
 
 const Booking = () => {
   const navigate = useNavigate();
@@ -125,24 +126,37 @@ const Booking = () => {
     setLoading(true);
     
     try {
-      const response = await fetch('/api/book', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
+      // Prepare booking data for the API
+      const bookingData = {
+        guest_name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        check_in: formData.checkIn,
+        check_out: formData.checkOut,
+        guests: formData.guests,
+        accommodation_type: formData.accommodationType,
+        total_amount: summary.totalCost,
+        special_requests: formData.specialRequests
+      };
+
+      const response = await bookingsAPI.create(bookingData);
       
-      const data = await response.json();
-      
-      if (data.success) {
-        navigate(`/booking-success/${data.booking.id}`);
+      if (response.booking_id) {
+        // Store booking data in localStorage for success page
+        const bookingInfo = {
+          id: response.booking_id,
+          ...bookingData,
+          addOns: formData.addOns,
+          summary: summary
+        };
+        localStorage.setItem('lastBooking', JSON.stringify(bookingInfo));
+        navigate('/booking-success');
       } else {
-        alert(data.message || 'Failed to submit booking');
+        alert('Booking failed. Please try again.');
       }
     } catch (error) {
       console.error('Booking error:', error);
-      alert('Failed to submit booking. Please try again.');
+      alert(error.message || 'Failed to submit booking. Please try again.');
     } finally {
       setLoading(false);
     }

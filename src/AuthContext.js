@@ -1,13 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { authAPI } from './services/api';
 
 // Create the authentication context
 const AuthContext = createContext({});
 
-// Super Admin credentials (In production, this should be in a secure backend)
-const SUPER_ADMIN_CREDENTIALS = {
-  username: 'superadmin',
-  password: 'MinniesFarm2025!', // Default password - should be changed
-  email: 'admin@minniesfarmresort.com'
+// Default admin credentials (these are now handled by the backend)
+const DEFAULT_CREDENTIALS = {
+  admin: { email: 'admin@minniesfarm.com', password: 'admin123' },
+  superAdmin: { email: 'superadmin@minniesfarm.com', password: 'superadmin123' }
 };
 
 export const AuthProvider = ({ children }) => {
@@ -18,84 +18,70 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is already logged in on mount
   useEffect(() => {
-    const savedAuth = localStorage.getItem('minniesAuth');
-    if (savedAuth) {
-      try {
-        const authData = JSON.parse(savedAuth);
-        if (authData.expiry > Date.now()) {
-          setIsAuthenticated(true);
-          setIsSuperAdmin(authData.isSuperAdmin);
-          setUser(authData.user);
-        } else {
-          localStorage.removeItem('minniesAuth');
+    const checkAuthStatus = async () => {
+      const token = localStorage.getItem('authToken');
+      if (token) {
+        try {
+          const response = await authAPI.verifyToken();
+          if (response.valid) {
+            setIsAuthenticated(true);
+            setIsSuperAdmin(response.user.role === 'super_admin');
+            setUser(response.user);
+          } else {
+            localStorage.removeItem('authToken');
+          }
+        } catch (error) {
+          console.error('Token verification failed:', error);
+          localStorage.removeItem('authToken');
         }
-      } catch (error) {
-        console.error('Error parsing auth data:', error);
-        localStorage.removeItem('minniesAuth');
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+
+    checkAuthStatus();
   }, []);
 
-  const login = (username, password) => {
-    // Check super admin credentials
-    if (username === SUPER_ADMIN_CREDENTIALS.username &&
-        password === SUPER_ADMIN_CREDENTIALS.password) {
-      const authData = {
-        user: {
-          username: SUPER_ADMIN_CREDENTIALS.username,
-          email: SUPER_ADMIN_CREDENTIALS.email,
-          role: 'superadmin',
-          loginTime: Date.now()
-        },
-        isSuperAdmin: true,
-        expiry: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
-      };
-
-      localStorage.setItem('minniesAuth', JSON.stringify(authData));
+  const login = async (email, password) => {
+    try {
+      const response = await authAPI.login(email, password);
+      
+      // Store token in localStorage
+      localStorage.setItem('authToken', response.token);
+      
+      // Update state
       setIsAuthenticated(true);
-      setIsSuperAdmin(true);
-      setUser(authData.user);
-      return { success: true, isSuperAdmin: true };
+      setIsSuperAdmin(response.user.role === 'super_admin');
+      setUser(response.user);
+      
+      return { success: true, isSuperAdmin: response.user.role === 'super_admin' };
+    } catch (error) {
+      console.error('Login error:', error);
+      return { success: false, error: error.message || 'Login failed' };
     }
+  };
 
-    // Check regular admin credentials (can be extended)
-    if (username === 'admin' && password === 'admin123') {
-      const authData = {
-        user: {
-          username: 'admin',
-          email: 'staff@minniesfarmresort.com',
-          role: 'admin',
-          loginTime: Date.now()
-        },
-        isSuperAdmin: false,
-        expiry: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
-      };
-
-      localStorage.setItem('minniesAuth', JSON.stringify(authData));
-      setIsAuthenticated(true);
+  const logout = async () => {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('authToken');
+      setIsAuthenticated(false);
       setIsSuperAdmin(false);
-      setUser(authData.user);
-      return { success: true, isSuperAdmin: false };
+      setUser(null);
     }
-
-    return { success: false, error: 'Invalid credentials' };
   };
 
-  const logout = () => {
-    localStorage.removeItem('minniesAuth');
-    setIsAuthenticated(false);
-    setIsSuperAdmin(false);
-    setUser(null);
-  };
-
-  const changePassword = (currentPassword, newPassword) => {
-    if (isSuperAdmin && currentPassword === SUPER_ADMIN_CREDENTIALS.password) {
-      // In production, this would update the password in the backend
-      alert('Password change would be processed in production environment');
-      return { success: true };
+  const changePassword = async (currentPassword, newPassword) => {
+    try {
+      // This would be implemented in the backend API
+      // For now, return a placeholder response
+      return { success: false, error: 'Password change feature coming soon' };
+    } catch (error) {
+      console.error('Change password error:', error);
+      return { success: false, error: error.message || 'Password change failed' };
     }
-    return { success: false, error: 'Current password is incorrect' };
   };
 
   const value = {

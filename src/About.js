@@ -77,18 +77,18 @@ const About = () => {
             <div className="team-member">
               <div className="member-avatar">
                 <img 
-                  src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/473332773_1162408192555544_5085407468956494349_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeEpHuuuo4hZ58UfGFljQCdD1IEvZT4276nUgS9lPjbvqehEnbqW2hug8HjPZM-75fvCNheGacts-LoGT5E3LCM0&_nc_ohc=Y0NRs_7ccc4Q7kNvwHCqQJy&_nc_oc=AdknfBqeG1kD6iXXjx7haor84_VED1C9EaqdOfB1-VgR9lyPekd-abN1ZKpHbg_5w98&_nc_zt=23&_nc_ht=scontent.fmnl13-2.fna&_nc_gid=C1SvSLPjYNg6ZzBT150EBA&oh=00_AfayoX2o3DMOZwx7YOC3H3_mPqqxpgwqRc-iLPx1c7cBGA&oe=68D14135" 
-                  alt="The Minnie's Family - Resort Owners" 
+                  src="https://scontent.fmnl13-1.fna.fbcdn.net/v/t39.30808-6/471431895_961606479169963_2367039667313892006_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeGIHPoUE7XvPsmpt3eViAiWm1OWd6RfMSObU5Z3pF8xI6t4cZhoePPrzg5SleTDssIhJafESXjyBT8oAT2epeJu&_nc_ohc=Sdm9ftCFxuEQ7kNvwErv1Ag&_nc_oc=AdmxdKkoxd5eeNCzBYiusM5AmK5iec1xHt0W0eZnXsM4SGvaSGR25H0ALhp3dt7Xck4&_nc_zt=23&_nc_ht=scontent.fmnl13-1.fna&_nc_gid=aSmPwxaehJhALTN6cXA17g&oh=00_AfahsgXIpnBNnMDD7uvxIp7jfdFEgoopkN-aFxJ0TVfXGw&oe=68D11CB2" 
+                  alt="Maximina Morales - Resort Owners" 
                 />
               </div>
-              <h3>The Minnie's Family</h3>
+              <h3>Maximina Morales </h3>
               <p className="role">Resort Owners & Operators</p>
-              <p>Dedicated to providing you with the best farm resort experience in Camarines Norte.</p>
+              <p>Dedicated to providing you with the best farm resort experience in Basud Camarines Norte.</p>
             </div>
             <div className="team-member">
               <div className="member-avatar">
                 <img 
-                  src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/473332773_1162408192555544_5085407468956494349_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeEpHuuuo4hZ58UfGFljQCdD1IEvZT4276nUgS9lPjbvqehEnbqW2hug8HjPZM-75fvCNheGacts-LoGT5E3LCM0&_nc_ohc=Y0NRs_7ccc4Q7kNvwHCqQJy&_nc_oc=AdknfBqeG1kD6iXXjx7haor84_VED1C9EaqdOfB1-VgR9lyPekd-abN1ZKpHbg_5w98&_nc_zt=23&_nc_ht=scontent.fmnl13-2.fna&_nc_gid=C1SvSLPjYNg6ZzBT150EBA&oh=00_AfayoX2o3DMOZwx7YOC3H3_mPqqxpgwqRc-iLPx1c7cBGA&oe=68D14135" 
+                  src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/482221285_2348571822179779_7550504095444498560_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=a5f93a&_nc_eui2=AeHgF8zWZwAXSt-IupzjQGrxxCSxZ-wOcsjEJLFn7A5yyDWLw5h2U2DahIGu6Gy4AIKXkulgyW08mA4JptmaXmo6&_nc_ohc=NhnfGkCKG_YQ7kNvwFIvI0h&_nc_oc=Adk2Vgdn7NNlO-6KuCbVM4RtktrevzGzRnc8qQZXO2roNGWG7UxX7cAXYrLF-1Mcx-0&_nc_zt=23&_nc_ht=scontent.fmnl13-2.fna&_nc_gid=wTQwgQEABvYqEfEMy_a5oQ&oh=00_AfbNk02ESSPSSVy5lIssxVbTEcpEML7VdHZu41HgPiYL8g&oe=68D12C7E" 
                   alt="Mick Daniel Q. Morales - IT Developer" 
                 />
               </div>

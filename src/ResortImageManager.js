@@ -1,26 +1,34 @@
 import React, { useState, useEffect } from 'react';
+import { imagesAPI } from './services/api';
 
 const ResortImageManager = () => {
   const [images, setImages] = useState([]);
-  const [uploadedImages, setUploadedImages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
-  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  // Load existing images from memory on component mount
+  // Load images from API
   useEffect(() => {
-    const savedImages = JSON.parse(localStorage.getItem('resortImages') || '[]');
-    if (savedImages.length > 0) {
-      setImages(savedImages);
-      setUploadedImages(savedImages);
-    }
+    fetchImages();
   }, []);
 
-  // Save images to localStorage whenever images change
-  useEffect(() => {
-    if (images.length > 0) {
-      localStorage.setItem('resortImages', JSON.stringify(images));
+  const fetchImages = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const data = await imagesAPI.getAll();
+      setImages(data.images || []);
+    } catch (error) {
+      console.error('Error fetching images:', error);
+      setError('Failed to load images. Please try again.');
+    } finally {
+      setLoading(false);
     }
-  }, [images]);
+  };
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -36,66 +44,103 @@ const ResortImageManager = () => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-
+    
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(e.dataTransfer.files);
     }
   };
 
-  const handleChange = (e) => {
-    e.preventDefault();
+  const handleFileInput = (e) => {
     if (e.target.files && e.target.files[0]) {
       handleFiles(e.target.files);
     }
   };
 
-  const handleFiles = (files) => {
-    Array.from(files).forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const newImage = {
-            id: Date.now() + Math.random(),
-            name: file.name,
-            size: file.size,
-            url: e.target.result,
-            uploadDate: new Date().toISOString(),
-            isHero: false,
-            category: 'general'
-          };
-          
-          setImages(prev => [...prev, newImage]);
-          setUploadedImages(prev => [...prev, newImage]);
-        };
-        reader.readAsDataURL(file);
+  const handleFiles = async (files) => {
+    setUploading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      for (let file of files) {
+        if (!file.type.startsWith('image/')) {
+          setError('Please select only image files.');
+          continue;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+          setError('File size must be less than 5MB.');
+          continue;
+        }
+
+        const formData = new FormData();
+        formData.append('image', file);
+        formData.append('category', 'gallery');
+        formData.append('description', 'Uploaded image');
+        formData.append('is_hero', 'false');
+
+        await imagesAPI.upload(formData);
       }
-    });
-  };
 
-  const removeImage = (imageId) => {
-    setImages(prev => prev.filter(img => img.id !== imageId));
-    setUploadedImages(prev => prev.filter(img => img.id !== imageId));
-  };
-
-  const setAsHeroImage = (imageId) => {
-    setImages(prev => prev.map(img => ({
-      ...img,
-      isHero: img.id === imageId
-    })));
-  };
-
-  const updateImageCategory = (imageId, category) => {
-    setImages(prev => prev.map(img => 
-      img.id === imageId ? { ...img, category } : img
-    ));
-  };
-
-  const clearAllImages = () => {
-    if (window.confirm('Are you sure you want to remove all images? This action cannot be undone.')) {
-      setImages([]);
-      setUploadedImages([]);
-      localStorage.removeItem('resortImages');
+      setSuccess('Images uploaded successfully!');
+      await fetchImages(); // Refresh the list
+    } catch (error) {
+      console.error('Upload error:', error);
+      setError(error.message || 'Failed to upload images. Please try again.');
+    } finally {
+      setUploading(false);
     }
+  };
+
+  const updateImage = async (id, updates) => {
+    try {
+      await imagesAPI.update(id, updates);
+      setSuccess('Image updated successfully!');
+      await fetchImages();
+      setShowModal(false);
+      setSelectedImage(null);
+    } catch (error) {
+      console.error('Update error:', error);
+      setError(error.message || 'Failed to update image. Please try again.');
+    }
+  };
+
+  const deleteImage = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this image? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      await imagesAPI.delete(id);
+      setSuccess('Image deleted successfully!');
+      await fetchImages();
+      setShowModal(false);
+      setSelectedImage(null);
+    } catch (error) {
+      console.error('Delete error:', error);
+      setError(error.message || 'Failed to delete image. Please try again.');
+    }
+  };
+
+  const toggleHero = async (id, isHero) => {
+    try {
+      await imagesAPI.setHero(id, !isHero);
+      setSuccess(`Image ${!isHero ? 'set as' : 'removed from'} hero images!`);
+      await fetchImages();
+    } catch (error) {
+      console.error('Hero toggle error:', error);
+      setError(error.message || 'Failed to update hero status. Please try again.');
+    }
+  };
+
+  const openImageModal = (image) => {
+    setSelectedImage(image);
+    setShowModal(true);
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedImage(null);
   };
 
   const formatFileSize = (bytes) => {
@@ -106,171 +151,397 @@ const ResortImageManager = () => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
-  const categories = [
-    { value: 'general', label: 'General' },
-    { value: 'rooms', label: 'Rooms' },
-    { value: 'amenities', label: 'Amenities' },
-    { value: 'dining', label: 'Dining' },
-    { value: 'activities', label: 'Activities' },
-    { value: 'exterior', label: 'Exterior' }
-  ];
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   return (
-    <div className="image-manager">
-      <div className="image-manager-header">
-        <h2>
-          <i className="fas fa-images"></i>
-          Resort Image Management
-        </h2>
-        <p>Upload and manage resort images. Set hero images and organize by categories.</p>
+    <div className="resort-image-manager">
+      {/* Header */}
+      <div className="admin-header-bar">
+        <div className="header-content">
+          <div className="header-left">
+            <h1>
+              <i className="fas fa-images"></i>
+              Resort Image Manager
+            </h1>
+            <p>Upload and manage resort images</p>
+          </div>
+          <div className="header-right">
+            <button 
+              className="btn-refresh"
+              onClick={fetchImages}
+              disabled={loading}
+              style={{
+                background: 'rgba(255, 255, 255, 0.2)',
+                color: 'white',
+                border: '2px solid rgba(255, 255, 255, 0.3)',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem'
+              }}
+            >
+              <i className={`fas fa-sync-alt ${loading ? 'fa-spin' : ''}`}></i>
+              Refresh
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Upload Area */}
-      <div className="upload-section">
-        <div 
-          className={`upload-dropzone ${dragActive ? 'drag-active' : ''}`}
+      <div className="upload-section" style={{
+        background: 'white',
+        padding: '2rem',
+        marginBottom: '2rem',
+        borderRadius: '12px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+      }}>
+        <h2 style={{ marginBottom: '1.5rem', color: '#2c3e50' }}>Upload Images</h2>
+        
+        <div
+          className={`upload-area ${dragActive ? 'drag-active' : ''}`}
           onDragEnter={handleDrag}
           onDragLeave={handleDrag}
           onDragOver={handleDrag}
           onDrop={handleDrop}
+          style={{
+            border: `2px dashed ${dragActive ? '#4a7c59' : '#e2e8f0'}`,
+            borderRadius: '12px',
+            padding: '3rem',
+            textAlign: 'center',
+            cursor: 'pointer',
+            transition: 'all 0.3s ease',
+            background: dragActive ? '#f8f9fa' : 'white'
+          }}
         >
-          <div className="upload-content">
-            <i className="fas fa-cloud-upload-alt upload-icon"></i>
-            <h3>Drag & drop images here</h3>
-            <p>or click to browse files</p>
-            <input
-              type="file"
-              multiple
-              accept="image/*"
-              onChange={handleChange}
-              className="file-input"
-            />
-            <div className="upload-info">
-              <small>Supported formats: JPG, PNG, GIF, WebP (Max 10MB per file)</small>
-            </div>
-          </div>
+          <input
+            type="file"
+            multiple
+            accept="image/*"
+            onChange={handleFileInput}
+            style={{ display: 'none' }}
+            id="file-input"
+          />
+          <label htmlFor="file-input" style={{ cursor: 'pointer' }}>
+            <i className="fas fa-cloud-upload-alt" style={{
+              fontSize: '3rem',
+              color: dragActive ? '#4a7c59' : '#9ca3af',
+              marginBottom: '1rem',
+              display: 'block'
+            }}></i>
+            <h3 style={{ color: '#2c3e50', marginBottom: '0.5rem' }}>
+              {dragActive ? 'Drop images here' : 'Click to upload or drag and drop'}
+            </h3>
+            <p style={{ color: '#5a5a5a', marginBottom: '1rem' }}>
+              PNG, JPG, GIF up to 5MB each
+            </p>
+            <button
+              type="button"
+              style={{
+                background: '#4a7c59',
+                color: 'white',
+                border: 'none',
+                padding: '0.75rem 1.5rem',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              Choose Files
+            </button>
+          </label>
         </div>
+
+        {uploading && (
+          <div style={{
+            marginTop: '1rem',
+            textAlign: 'center',
+            color: '#4a7c59'
+          }}>
+            <i className="fas fa-spinner fa-spin" style={{ marginRight: '0.5rem' }}></i>
+            Uploading images...
+          </div>
+        )}
       </div>
 
-      {/* Image Stats */}
-      {images.length > 0 && (
-        <div className="image-stats">
-          <div className="stats-grid">
-            <div className="stat-item">
-              <span className="stat-number">{images.length}</span>
-              <span className="stat-label">Total Images</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">{images.filter(img => img.isHero).length}</span>
-              <span className="stat-label">Hero Images</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">
-                {formatFileSize(images.reduce((total, img) => total + img.size, 0))}
-              </span>
-              <span className="stat-label">Total Size</span>
-            </div>
-          </div>
-          <button 
-            onClick={clearAllImages}
-            className="btn btn-danger btn-clear-all"
-          >
-            <i className="fas fa-trash"></i>
-            Clear All Images
-          </button>
+      {/* Messages */}
+      {error && (
+        <div style={{
+          background: '#fed7d7',
+          color: '#c53030',
+          padding: '1rem',
+          borderRadius: '8px',
+          marginBottom: '2rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem'
+        }}>
+          <i className="fas fa-exclamation-triangle"></i>
+          {error}
         </div>
       )}
 
-      {/* Image Grid */}
-      {images.length > 0 && (
-        <div className="images-grid-section">
-          <h3>Uploaded Images ({images.length})</h3>
-          <div className="images-grid">
-            {images.map((image, index) => (
-              <div key={image.id} className={`image-card ${image.isHero ? 'hero-image' : ''}`}>
-                <div className="image-preview">
-                  <img 
-                    src={image.url} 
-                    alt={image.name}
-                    onClick={() => setSelectedImageIndex(index)}
+      {success && (
+        <div style={{
+          background: '#d4edda',
+          color: '#155724',
+          padding: '1rem',
+          borderRadius: '8px',
+          marginBottom: '2rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem'
+        }}>
+          <i className="fas fa-check-circle"></i>
+          {success}
+        </div>
+      )}
+
+      {/* Images Grid */}
+      <div className="images-section" style={{
+        background: 'white',
+        padding: '2rem',
+        borderRadius: '12px',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1)'
+      }}>
+        <h2 style={{ marginBottom: '1.5rem', color: '#2c3e50' }}>
+          Resort Images ({images.length})
+        </h2>
+
+        {loading ? (
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: '4rem',
+            color: '#5a5a5a'
+          }}>
+            <i className="fas fa-spinner fa-spin" style={{ marginRight: '1rem' }}></i>
+            Loading images...
+          </div>
+        ) : images.length === 0 ? (
+          <div style={{
+            textAlign: 'center',
+            padding: '4rem',
+            color: '#5a5a5a'
+          }}>
+            <i className="fas fa-images" style={{ fontSize: '3rem', marginBottom: '1rem' }}></i>
+            <h3>No images uploaded yet</h3>
+            <p>Upload some images to get started</p>
+          </div>
+        ) : (
+          <div className="images-grid" style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+            gap: '1.5rem'
+          }}>
+            {images.map((image) => (
+              <div key={image.id} className="image-card" style={{
+                border: '1px solid #e2e8f0',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                transition: 'all 0.2s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => e.target.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)'}
+              onMouseLeave={(e) => e.target.style.boxShadow = 'none'}
+              onClick={() => openImageModal(image)}
+              >
+                <div style={{ position: 'relative' }}>
+                  <img
+                    src={image.url}
+                    alt={image.description || image.original_name}
+                    style={{
+                      width: '100%',
+                      height: '200px',
+                      objectFit: 'cover'
+                    }}
                   />
-                  {image.isHero && (
-                    <div className="hero-badge">
-                      <i className="fas fa-star"></i>
-                      Hero
+                  {image.is_hero && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '0.5rem',
+                      right: '0.5rem',
+                      background: '#ff9800',
+                      color: 'white',
+                      padding: '0.25rem 0.5rem',
+                      borderRadius: '12px',
+                      fontSize: '0.8rem',
+                      fontWeight: '600'
+                    }}>
+                      HERO
                     </div>
                   )}
                 </div>
-                
-                <div className="image-details">
-                  <h4>{image.name}</h4>
-                  <p>{formatFileSize(image.size)}</p>
-                  <p>{new Date(image.uploadDate).toLocaleDateString()}</p>
-                  
-                  <div className="image-category">
-                    <select
-                      value={image.category}
-                      onChange={(e) => updateImageCategory(image.id, e.target.value)}
-                      className="category-select"
-                    >
-                      {categories.map(cat => (
-                        <option key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </option>
-                      ))}
-                    </select>
+                <div style={{ padding: '1rem' }}>
+                  <h4 style={{
+                    margin: '0 0 0.5rem 0',
+                    color: '#2c3e50',
+                    fontSize: '1rem',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {image.original_name}
+                  </h4>
+                  <p style={{
+                    margin: '0 0 0.5rem 0',
+                    color: '#5a5a5a',
+                    fontSize: '0.9rem',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap'
+                  }}>
+                    {image.description || 'No description'}
+                  </p>
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    fontSize: '0.8rem',
+                    color: '#5a5a5a'
+                  }}>
+                    <span>{image.category}</span>
+                    <span>{formatFileSize(image.file_size)}</span>
                   </div>
-                </div>
-
-                <div className="image-actions">
-                  <button
-                    onClick={() => setAsHeroImage(image.id)}
-                    className={`btn btn-small ${image.isHero ? 'btn-warning' : 'btn-primary'}`}
-                    title={image.isHero ? 'Remove as Hero' : 'Set as Hero'}
-                  >
-                    <i className="fas fa-star"></i>
-                  </button>
-                  <button
-                    onClick={() => removeImage(image.id)}
-                    className="btn btn-small btn-danger"
-                    title="Delete Image"
-                  >
-                    <i className="fas fa-trash"></i>
-                  </button>
                 </div>
               </div>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Image Preview Modal */}
-      {images.length > 0 && selectedImageIndex !== null && (
-        <div className="image-preview-modal" onClick={() => setSelectedImageIndex(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <button 
-              className="modal-close"
-              onClick={() => setSelectedImageIndex(null)}
-            >
-              <i className="fas fa-times"></i>
-            </button>
-            {selectedImageIndex !== null && (
-              <img 
-                src={images[selectedImageIndex]?.url} 
-                alt={images[selectedImageIndex]?.name}
-                className="preview-image"
-              />
-            )}
+      {/* Image Details Modal */}
+      {showModal && selectedImage && (
+        <div className="modal-overlay" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '2rem'
+        }}>
+          <div className="modal-content" style={{
+            background: 'white',
+            borderRadius: '12px',
+            padding: '2rem',
+            maxWidth: '600px',
+            width: '100%',
+            maxHeight: '90vh',
+            overflowY: 'auto',
+            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3)'
+          }}>
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '2rem',
+              paddingBottom: '1rem',
+              borderBottom: '2px solid #e2e8f0'
+            }}>
+              <h2 style={{ margin: 0, color: '#2c3e50' }}>
+                Image Details
+              </h2>
+              <button
+                onClick={closeModal}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.5rem',
+                  cursor: 'pointer',
+                  color: '#5a5a5a'
+                }}
+              >
+                <i className="fas fa-times"></i>
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gap: '1.5rem' }}>
+              {/* Image Preview */}
+              <div style={{ textAlign: 'center' }}>
+                <img
+                  src={selectedImage.url}
+                  alt={selectedImage.description || selectedImage.original_name}
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '300px',
+                    borderRadius: '8px',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)'
+                  }}
+                />
+              </div>
+
+              {/* Image Information */}
+              <div>
+                <h3 style={{ color: '#2c3e50', marginBottom: '1rem' }}>Image Information</h3>
+                <div style={{ display: 'grid', gap: '0.5rem' }}>
+                  <div><strong>Filename:</strong> {selectedImage.original_name}</div>
+                  <div><strong>Category:</strong> {selectedImage.category}</div>
+                  <div><strong>Description:</strong> {selectedImage.description || 'No description'}</div>
+                  <div><strong>File Size:</strong> {formatFileSize(selectedImage.file_size)}</div>
+                  <div><strong>Uploaded:</strong> {formatDate(selectedImage.created_at)}</div>
+                  <div><strong>Hero Image:</strong> {selectedImage.is_hero ? 'Yes' : 'No'}</div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{
+                display: 'flex',
+                gap: '1rem',
+                paddingTop: '1rem',
+                borderTop: '2px solid #e2e8f0'
+              }}>
+                <button
+                  onClick={() => toggleHero(selectedImage.id, selectedImage.is_hero)}
+                  style={{
+                    background: selectedImage.is_hero ? '#ff9800' : '#4caf50',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    flex: 1
+                  }}
+                >
+                  <i className="fas fa-star" style={{ marginRight: '0.5rem' }}></i>
+                  {selectedImage.is_hero ? 'Remove from Hero' : 'Set as Hero'}
+                </button>
+
+                <button
+                  onClick={() => deleteImage(selectedImage.id)}
+                  style={{
+                    background: '#f44336',
+                    color: 'white',
+                    border: 'none',
+                    padding: '0.75rem 1.5rem',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    fontWeight: '600',
+                    flex: 1
+                  }}
+                >
+                  <i className="fas fa-trash" style={{ marginRight: '0.5rem' }}></i>
+                  Delete Image
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
-
-      {/* Empty State */}
-      {images.length === 0 && (
-        <div className="empty-state">
-          <i className="fas fa-image empty-icon"></i>
-          <h3>No images uploaded yet</h3>
-          <p>Start by uploading some beautiful resort images to showcase your property.</p>
         </div>
       )}
     </div>

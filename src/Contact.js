@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { contactAPI } from './services/api';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -25,17 +26,9 @@ const Contact = () => {
     setStatus({ type: '', message: '' });
 
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData)
-      });
+      const response = await contactAPI.submit(formData);
 
-      const data = await response.json();
-
-      if (data.success) {
+      if (response.message_id) {
         setStatus({ type: 'success', message: 'Message sent successfully! We\'ll get back to you soon.' });
         setFormData({
           name: '',
@@ -45,11 +38,11 @@ const Contact = () => {
           message: ''
         });
       } else {
-        setStatus({ type: 'error', message: data.message || 'Failed to send message' });
+        setStatus({ type: 'error', message: 'Failed to send message. Please try again.' });
       }
     } catch (error) {
       console.error('Contact form error:', error);
-      setStatus({ type: 'error', message: 'Failed to send message. Please try again.' });
+      setStatus({ type: 'error', message: error.message || 'Failed to send message. Please try again.' });
     } finally {
       setLoading(false);
     }

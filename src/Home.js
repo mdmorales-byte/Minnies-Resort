@@ -137,7 +137,7 @@ const Home = () => {
               </div>
             </div>
             <div className="gallery-item">
-              <img src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80" 
+              <img src="https://scontent.fmnl13-2.fna.fbcdn.net/v/t39.30808-6/486507811_1024223232908287_7365071062297424862_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=833d8c&_nc_eui2=AeFhW1juJlBCfTYoa-F5hkksKAH8_NO9-lgoAfz80736WGLnXESV8lG7B96QkGbOCgggheBTbAQZO11UVEq-ah75&_nc_ohc=hyUf1U15AdYQ7kNvwFEzSku&_nc_oc=AdkkJUJQPmpS9ghsAaf3B-F62pcD6G1mYP-0BxKHZKHLF63PNnWTwVCZNxRuUPVExSY&_nc_zt=23&_nc_ht=scontent.fmnl13-2.fna&_nc_gid=0WK2i7CKyJkbc2PaZRQS7A&oh=00_AfZTnU4rxiXgkYRNFAilTxrzoCsLIZJAz3yTskTMGhAAyw&oe=68D13C2A" 
                    alt="Nature and relaxation" />
               <div className="gallery-overlay">
                 <h3>Nature & Relaxation</h3>

@@ -2,10 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import ResortImageManager from './ResortImageManager';
+import { adminAPI } from './services/api';
 
 const SuperAdminDashboard = () => {
   const { user, logout, isAuthenticated, isSuperAdmin, loading } = useAuth();
   const navigate = useNavigate();
+  const [dashboardData, setDashboardData] = useState(null);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [activeSection, setActiveSection] = useState('dashboard');
+
+  // Fetch dashboard data
+  const fetchDashboardData = async () => {
+    try {
+      setDataLoading(true);
+      const data = await adminAPI.getStats();
+      setDashboardData(data);
+    } catch (error) {
+      console.error('Failed to fetch dashboard data:', error);
+    } finally {
+      setDataLoading(false);
+    }
+  };
 
   // Redirect if not authenticated or not super admin
   useEffect(() => {
@@ -14,6 +31,9 @@ const SuperAdminDashboard = () => {
         navigate('/admin/login');
       } else if (!isSuperAdmin) {
         navigate('/admin/login');
+      } else {
+        // Fetch dashboard data when authenticated
+        fetchDashboardData();
       }
     }
   }, [isAuthenticated, isSuperAdmin, loading, navigate]);
@@ -42,7 +62,38 @@ const SuperAdminDashboard = () => {
     return null;
   }
 
-  const [stats, setStats] = useState({
+  // Show loading while fetching dashboard data
+  if (dataLoading) {
+    return (
+      <div className="super-admin-dashboard">
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          height: '100vh',
+          fontSize: '1.2rem',
+          color: '#4a7c59'
+        }}>
+          <i className="fas fa-spinner fa-spin" style={{ marginRight: '1rem' }}></i>
+          Loading dashboard data...
+        </div>
+      </div>
+    );
+  }
+
+  // Get stats from API data or use defaults
+  const stats = dashboardData ? {
+    totalBookings: dashboardData.stats.totalBookings || 0,
+    pendingBookings: dashboardData.stats.bookingStats.pending || 0,
+    confirmedBookings: dashboardData.stats.bookingStats.confirmed || 0,
+    totalRevenue: dashboardData.stats.totalRevenue || 0,
+    todayBookings: 0, // This would need to be calculated from recent bookings
+    monthlyRevenue: 0, // This would need to be calculated from monthly trends
+    occupancyRate: 0,
+    averageStayDuration: 0,
+    totalImages: 0,
+    heroImages: 0
+  } : {
     totalBookings: 0,
     pendingBookings: 0,
     confirmedBookings: 0,
@@ -53,121 +104,21 @@ const SuperAdminDashboard = () => {
     averageStayDuration: 0,
     totalImages: 0,
     heroImages: 0
-  });
-
-  const [recentActivities, setRecentActivities] = useState([]);
-  const [revenueChart, setRevenueChart] = useState([]);
-  const [activeSection, setActiveSection] = useState('dashboard');
-
-  useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = () => {
-    // Load bookings from localStorage
-    const storedBookings = JSON.parse(localStorage.getItem('bookings') || '[]');
-    
-    // Load resort images from localStorage
-    const storedImages = JSON.parse(localStorage.getItem('resortImages') || '[]');
-
-    // Calculate statistics
-    const today = new Date().toDateString();
-    const currentMonth = new Date().getMonth();
-
-    const stats = {
-      totalBookings: storedBookings.length,
-      pendingBookings: storedBookings.filter(b => b.status === 'pending').length,
-      confirmedBookings: storedBookings.filter(b => b.status === 'confirmed').length,
-      totalRevenue: storedBookings.reduce((sum, b) => sum + (b.totalCost || 0), 0),
-      todayBookings: storedBookings.filter(b =>
-        new Date(b.createdAt).toDateString() === today
-      ).length,
-      monthlyRevenue: storedBookings
-        .filter(b => new Date(b.checkIn).getMonth() === currentMonth)
-        .reduce((sum, b) => sum + (b.totalCost || 0), 0),
-      occupancyRate: calculateOccupancyRate(storedBookings),
-      averageStayDuration: calculateAverageStayDuration(storedBookings),
-      totalImages: storedImages.length,
-      heroImages: storedImages.filter(img => img.isHero).length
-    };
-
-    setStats(stats);
-
-    // Generate recent activities
-    const activities = generateRecentActivities(storedBookings, storedImages);
-    setRecentActivities(activities);
-
-    // Generate revenue chart data
-    const chartData = generateRevenueChartData(storedBookings);
-    setRevenueChart(chartData);
   };
 
-  const calculateOccupancyRate = (bookings) => {
-    const confirmed = bookings.filter(b => b.status === 'confirmed').length;
-    const totalCapacity = 30; // Assuming 30 units available per month
-    return Math.round((confirmed / totalCapacity) * 100);
-  };
+  const recentActivities = dashboardData ? dashboardData.recentBookings.map(booking => ({
+    id: booking.id,
+    type: 'booking',
+    title: `New booking from ${booking.guest_name}`,
+    description: `${booking.accommodation_type} - ${booking.guests} guests`,
+    time: booking.created_at,
+    status: booking.status
+  })) : [];
 
-  const calculateAverageStayDuration = (bookings) => {
-    const bookingsWithDuration = bookings.filter(b => b.checkOut);
-    if (bookingsWithDuration.length === 0) return 0;
-
-    const totalDays = bookingsWithDuration.reduce((sum, b) => {
-      const checkIn = new Date(b.checkIn);
-      const checkOut = new Date(b.checkOut);
-      const days = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
-      return sum + days;
-    }, 0);
-
-    return (totalDays / bookingsWithDuration.length).toFixed(1);
-  };
-
-  const generateRecentActivities = (bookings, images) => {
-    const bookingActivities = bookings
-      .slice(-3)
-      .reverse()
-      .map(booking => ({
-        id: booking.id,
-        type: 'booking',
-        description: `New booking from ${booking.name}`,
-        time: new Date(booking.createdAt || Date.now()).toLocaleString(),
-        status: booking.status
-      }));
-
-    const imageActivities = images
-      .slice(-2)
-      .reverse()
-      .map(image => ({
-        id: image.id,
-        type: 'image',
-        description: `Image "${image.name}" uploaded`,
-        time: new Date(image.uploadDate).toLocaleString(),
-        status: 'uploaded'
-      }));
-
-    return [...imageActivities, ...bookingActivities].slice(0, 5);
-  };
-
-  const generateRevenueChartData = (bookings) => {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const currentMonth = new Date().getMonth();
-    const chartData = [];
-
-    for (let i = 5; i >= 0; i--) {
-      const monthIndex = (currentMonth - i + 12) % 12;
-      const monthBookings = bookings.filter(b => {
-        const bookingMonth = new Date(b.checkIn).getMonth();
-        return bookingMonth === monthIndex;
-      });
-
-      chartData.push({
-        month: months[monthIndex],
-        revenue: monthBookings.reduce((sum, b) => sum + (b.totalCost || 0), 0)
-      });
-    }
-
-    return chartData;
-  };
+  const revenueChart = dashboardData ? dashboardData.monthlyTrends.map(trend => ({
+    month: new Date(trend.month + '-01').toLocaleString('default', { month: 'short' }),
+    revenue: trend.revenue || 0
+  })) : [];
 
   const handleLogout = () => {
     logout();
@@ -176,305 +127,295 @@ const SuperAdminDashboard = () => {
 
   const quickActions = [
     {
+      id: 'manage-bookings',
       title: 'Manage Bookings',
-      icon: 'fa-calendar-check',
-      link: '/admin/bookings',
-      color: 'primary',
-      description: 'View and manage all reservations'
+      description: 'View and manage all resort bookings',
+      icon: 'fas fa-calendar-check',
+      action: () => navigate('/admin/bookings')
     },
     {
-      title: 'Resort Images',
-      icon: 'fa-images',
-      action: () => setActiveSection('images'),
-      color: 'secondary',
-      description: 'Upload and manage resort photos'
+      id: 'manage-messages',
+      title: 'Contact Messages',
+      description: 'View and manage customer inquiries',
+      icon: 'fas fa-envelope',
+      action: () => navigate('/admin/messages')
     },
     {
+      id: 'manage-users',
       title: 'User Management',
-      icon: 'fa-users-cog',
-      link: '/admin/users',
-      color: 'success',
-      description: 'Manage staff and admin accounts'
+      description: 'Manage admin users and permissions',
+      icon: 'fas fa-users-cog',
+      action: () => navigate('/admin/users')
     },
     {
-      title: 'Analytics',
-      icon: 'fa-chart-line',
-      link: '/admin/analytics',
-      color: 'info',
-      description: 'View detailed reports and insights'
+      id: 'manage-images',
+      title: 'Manage Images',
+      description: 'Upload and organize resort images',
+      icon: 'fas fa-images',
+      action: () => setActiveSection('images')
     },
     {
-      title: 'Settings',
-      icon: 'fa-cog',
-      link: '/admin/settings',
-      color: 'warning',
-      description: 'Configure system settings'
+      id: 'view-reports',
+      title: 'View Reports',
+      description: 'Generate and view business reports',
+      icon: 'fas fa-chart-bar',
+      action: () => setActiveSection('reports')
+    },
+    {
+      id: 'manage-users',
+      title: 'Manage Users',
+      description: 'Add and manage admin users',
+      icon: 'fas fa-users-cog',
+      action: () => setActiveSection('users')
     }
   ];
 
-  return (
-    <div className="super-admin-dashboard">
-      {/* Header */}
-      <header className="admin-header-bar">
-        <div className="header-content">
-          <div className="header-left">
-            <h1>
-              <i className="fas fa-shield-alt"></i>
-              Super Admin Dashboard
-            </h1>
-            <p>Welcome back, {user?.username}</p>
-          </div>
-          <div className="header-right">
-            <span className="user-info">
-              <i className="fas fa-user-shield"></i>
-              {user?.email}
-            </span>
-            <button onClick={handleLogout} className="btn btn-logout">
-              <i className="fas fa-sign-out-alt"></i>
-              Logout
-            </button>
+  // If a specific section is active, render that component
+  if (activeSection === 'images') {
+    return (
+      <div className="super-admin-dashboard">
+        <div className="admin-header-bar">
+          <div className="header-content">
+            <div className="header-left">
+              <h1>
+                <i className="fas fa-images"></i>
+                Resort Image Manager
+              </h1>
+              <p>Upload and manage resort images</p>
+            </div>
+            <div className="header-right">
+              <div className="user-info">
+                <i className="fas fa-user-circle"></i>
+                <span>{user?.name || 'Super Admin'}</span>
+              </div>
+              <button className="btn-logout" onClick={handleLogout}>
+                <i className="fas fa-sign-out-alt"></i>
+                Logout
+              </button>
+            </div>
           </div>
         </div>
-      </header>
-
-      {/* Navigation Breadcrumb */}
-      {activeSection !== 'dashboard' && (
-        <section className="breadcrumb-section">
+        
+        <div className="breadcrumb-section">
           <div className="container">
             <div className="breadcrumb">
               <button 
-                onClick={() => setActiveSection('dashboard')}
                 className="breadcrumb-item"
+                onClick={() => setActiveSection('dashboard')}
               >
                 <i className="fas fa-home"></i>
                 Dashboard
               </button>
               <span className="breadcrumb-separator">/</span>
-              <span className="breadcrumb-current">
-                {activeSection === 'images' && 'Image Manager'}
+              <span className="breadcrumb-current">Image Manager</span>
+            </div>
+          </div>
+        </div>
+
+        <ResortImageManager />
+      </div>
+    );
+  }
+
+  return (
+    <div className="super-admin-dashboard">
+      {/* Header */}
+      <div className="admin-header-bar">
+        <div className="header-content">
+          <div className="header-left">
+            <h1>
+              <i className="fas fa-tachometer-alt"></i>
+              Super Admin Dashboard
+            </h1>
+            <p>Welcome back, {user?.name || 'Super Admin'}</p>
+          </div>
+          <div className="header-right">
+            <div className="user-info">
+              <i className="fas fa-user-circle"></i>
+              <span>{user?.name || 'Super Admin'}</span>
+            </div>
+            <button className="btn-logout" onClick={handleLogout}>
+              <i className="fas fa-sign-out-alt"></i>
+              Logout
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Overview */}
+      <div className="stats-overview">
+        <h2>Dashboard Overview</h2>
+        <div className="stats-grid">
+          <div className="stat-card">
+            <div className="stat-icon" style={{ backgroundColor: '#4CAF50' }}>
+              <i className="fas fa-calendar-alt"></i>
+            </div>
+            <div className="stat-content">
+              <h3>{stats.totalBookings}</h3>
+              <p>Total Bookings</p>
+              <span className="stat-change positive">
+                <i className="fas fa-arrow-up"></i> {stats.todayBookings} today
               </span>
             </div>
           </div>
-        </section>
-      )}
 
-      {/* Conditional Content */}
-      {activeSection === 'dashboard' ? (
-        <>
-          {/* Stats Overview */}
-          <section className="stats-overview">
-        <div className="container">
-          <h2>Overview</h2>
-          <div className="stats-grid">
-            <div className="stat-card">
-              <div className="stat-icon" style={{ backgroundColor: '#4CAF50' }}>
-                <i className="fas fa-calendar-alt"></i>
-              </div>
-              <div className="stat-content">
-                <h3>{stats.totalBookings}</h3>
-                <p>Total Bookings</p>
-                <span className="stat-change positive">
-                  <i className="fas fa-arrow-up"></i> {stats.todayBookings} today
-                </span>
-              </div>
+          <div className="stat-card">
+            <div className="stat-icon" style={{ backgroundColor: '#2196F3' }}>
+              <i className="fas fa-clock"></i>
             </div>
-
-            <div className="stat-card">
-              <div className="stat-icon" style={{ backgroundColor: '#FF9800' }}>
-                <i className="fas fa-hourglass-half"></i>
-              </div>
-              <div className="stat-content">
-                <h3>{stats.pendingBookings}</h3>
-                <p>Pending Bookings</p>
-                <span className="stat-change">Awaiting confirmation</span>
-              </div>
+            <div className="stat-content">
+              <h3>{stats.pendingBookings}</h3>
+              <p>Pending Bookings</p>
+              <span className="stat-change">
+                <i className="fas fa-hourglass-half"></i> Awaiting confirmation
+              </span>
             </div>
+          </div>
 
-            <div className="stat-card">
-              <div className="stat-icon" style={{ backgroundColor: '#2196F3' }}>
-                <i className="fas fa-peso-sign"></i>
-              </div>
-              <div className="stat-content">
-                <h3>₱{stats.totalRevenue.toLocaleString()}</h3>
-                <p>Total Revenue</p>
-                <span className="stat-change positive">
-                  ₱{stats.monthlyRevenue.toLocaleString()} this month
-                </span>
-              </div>
+          <div className="stat-card">
+            <div className="stat-icon" style={{ backgroundColor: '#FF9800' }}>
+              <i className="fas fa-check-circle"></i>
             </div>
-
-            <div className="stat-card">
-              <div className="stat-icon" style={{ backgroundColor: '#9C27B0' }}>
-                <i className="fas fa-bed"></i>
-              </div>
-              <div className="stat-content">
-                <h3>{stats.occupancyRate}%</h3>
-                <p>Occupancy Rate</p>
-                <span className="stat-change">
-                  Avg stay: {stats.averageStayDuration} days
-                </span>
-              </div>
+            <div className="stat-content">
+              <h3>{stats.confirmedBookings}</h3>
+              <p>Confirmed Bookings</p>
+              <span className="stat-change positive">
+                <i className="fas fa-check"></i> Ready for guests
+              </span>
             </div>
+          </div>
 
-            <div className="stat-card">
-              <div className="stat-icon" style={{ backgroundColor: '#E91E63' }}>
-                <i className="fas fa-images"></i>
-              </div>
-              <div className="stat-content">
-                <h3>{stats.totalImages}</h3>
-                <p>Resort Images</p>
-                <span className="stat-change">
-                  {stats.heroImages} hero images
-                </span>
-              </div>
+          <div className="stat-card">
+            <div className="stat-icon" style={{ backgroundColor: '#9C27B0' }}>
+              <i className="fas fa-dollar-sign"></i>
+            </div>
+            <div className="stat-content">
+              <h3>₱{stats.totalRevenue.toLocaleString()}</h3>
+              <p>Total Revenue</p>
+              <span className="stat-change positive">
+                <i className="fas fa-arrow-up"></i> ₱{stats.monthlyRevenue.toLocaleString()} this month
+              </span>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Quick Actions */}
-      <section className="quick-actions">
-        <div className="container">
-          <h2>Quick Actions</h2>
-          <div className="actions-grid">
-            {quickActions.map((action, index) => (
-              action.link ? (
-                <Link to={action.link} key={index} className={`action-card action-${action.color}`}>
-                  <div className="action-icon">
-                    <i className={`fas ${action.icon}`}></i>
-                  </div>
-                  <h3>{action.title}</h3>
-                  <p>{action.description}</p>
-                  <span className="action-arrow">
-                    <i className="fas fa-arrow-right"></i>
-                  </span>
-                </Link>
-              ) : (
-                <button 
-                  key={index} 
-                  onClick={action.action}
-                  className={`action-card action-${action.color}`}
-                  style={{ border: 'none', background: 'none', cursor: 'pointer', width: '100%' }}
-                >
-                  <div className="action-icon">
-                    <i className={`fas ${action.icon}`}></i>
-                  </div>
-                  <h3>{action.title}</h3>
-                  <p>{action.description}</p>
-                  <span className="action-arrow">
-                    <i className="fas fa-arrow-right"></i>
-                  </span>
-                </button>
-              )
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Revenue Chart & Recent Activities */}
-      <section className="dashboard-widgets">
-        <div className="container">
-          <div className="widgets-grid">
-            {/* Revenue Chart */}
-            <div className="widget-card">
-              <div className="widget-header">
-                <h3>
-                  <i className="fas fa-chart-bar"></i>
-                  Revenue Trend (Last 6 Months)
-                </h3>
+      <div className="quick-actions">
+        <h2>Quick Actions</h2>
+        <div className="actions-grid">
+          {quickActions.map(action => (
+            <div 
+              key={action.id}
+              className={`action-card action-${action.id.split('-')[1]}`}
+              onClick={action.action}
+            >
+              <div className="action-icon">
+                <i className={action.icon}></i>
               </div>
-              <div className="widget-content">
-                <div className="simple-chart">
-                  {revenueChart.map((data, index) => (
-                    <div key={index} className="chart-bar-container">
-                      <div
-                        className="chart-bar"
-                        style={{
-                          height: `${Math.max(20, (data.revenue / 50000) * 100)}%`,
-                          backgroundColor: '#6ba644'
-                        }}
-                      >
-                        <span className="bar-value">₱{(data.revenue / 1000).toFixed(0)}k</span>
-                      </div>
-                      <span className="bar-label">{data.month}</span>
+              <h3>{action.title}</h3>
+              <p>{action.description}</p>
+              <div className="action-arrow">
+                <i className="fas fa-arrow-right"></i>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Dashboard Widgets */}
+      <div className="dashboard-widgets">
+        <div className="widgets-grid">
+          {/* Recent Activities */}
+          <div className="widget-card">
+            <div className="widget-header">
+              <h3>
+                <i className="fas fa-history"></i>
+                Recent Activities
+              </h3>
+            </div>
+            <div className="widget-content">
+              {recentActivities.length > 0 ? (
+                recentActivities.map(activity => (
+                  <div key={activity.id} className="activity-item">
+                    <div className={`activity-icon ${activity.type}`}>
+                      <i className={activity.type === 'booking' ? 'fas fa-calendar-plus' : 'fas fa-image'}></i>
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <div className="activity-content">
+                      <h4>{activity.title}</h4>
+                      <p>{activity.description}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p style={{ textAlign: 'center', color: '#666', padding: '2rem' }}>
+                  No recent activities
+                </p>
+              )}
             </div>
+          </div>
 
-            {/* Recent Activities */}
-            <div className="widget-card">
-              <div className="widget-header">
-                <h3>
-                  <i className="fas fa-history"></i>
-                  Recent Activities
-                </h3>
-              </div>
-              <div className="widget-content">
-                <div className="activities-list">
-                  {recentActivities.length > 0 ? (
-                    recentActivities.map((activity, index) => (
-                      <div key={index} className="activity-item">
-                        <div className="activity-icon">
-                          <i className={`fas ${activity.type === 'booking' ? 'fa-calendar-plus' : 'fa-image'}`}></i>
-                        </div>
-                        <div className="activity-content">
-                          <p>{activity.description}</p>
-                          <span className="activity-time">{activity.time}</span>
-                        </div>
-                        <span className={`status-badge status-${activity.status}`}>
-                          {activity.status}
-                        </span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="no-activities">No recent activities</p>
-                  )}
-                </div>
+          {/* Revenue Chart */}
+          <div className="widget-card">
+            <div className="widget-header">
+              <h3>
+                <i className="fas fa-chart-line"></i>
+                Revenue Trends
+              </h3>
+            </div>
+            <div className="widget-content">
+              <div className="simple-chart">
+                {revenueChart.map((item, index) => (
+                  <div key={index} className="chart-bar-container">
+                    <div 
+                      className="chart-bar" 
+                      style={{ height: `${Math.max(20, (item.revenue / Math.max(...revenueChart.map(r => r.revenue), 1)) * 100)}%` }}
+                    >
+                      <span className="bar-value">₱{item.revenue.toLocaleString()}</span>
+                    </div>
+                    <div className="bar-label">{item.month}</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
-      </section>
+      </div>
 
       {/* System Status */}
-      <section className="system-status">
-        <div className="container">
-          <div className="status-card">
-            <h3>
-              <i className="fas fa-server"></i>
-              System Status
-            </h3>
-            <div className="status-grid">
-              <div className="status-item">
-                <span className="status-indicator status-online"></span>
-                <span>Database: Online</span>
-              </div>
-              <div className="status-item">
-                <span className="status-indicator status-online"></span>
-                <span>Web Server: Online</span>
-              </div>
-              <div className="status-item">
-                <span className="status-indicator status-online"></span>
-                <span>Payment Gateway: Online</span>
-              </div>
-              <div className="status-item">
-                <span className="status-indicator status-online"></span>
-                <span>Email Service: Online</span>
-              </div>
+      <div className="system-status">
+        <h2>System Status</h2>
+        <div className="status-grid">
+          <div className="status-item">
+            <div className="status-indicator"></div>
+            <div className="status-content">
+              <h4>Database</h4>
+              <p>Connected</p>
             </div>
-            <p className="last-backup">
-              <i className="fas fa-database"></i>
-              Last backup: {new Date().toLocaleString()}
-            </p>
+          </div>
+          <div className="status-item">
+            <div className="status-indicator"></div>
+            <div className="status-content">
+              <h4>API Server</h4>
+              <p>Running</p>
+            </div>
+          </div>
+          <div className="status-item">
+            <div className="status-indicator"></div>
+            <div className="status-content">
+              <h4>Authentication</h4>
+              <p>Active</p>
+            </div>
+          </div>
+          <div className="status-item">
+            <div className="status-indicator"></div>
+            <div className="status-content">
+              <h4>File Storage</h4>
+              <p>Available</p>
+            </div>
           </div>
         </div>
-      </section>
-        </>
-      ) : activeSection === 'images' ? (
-        <ResortImageManager />
-      ) : null}
+      </div>
     </div>
   );
 };
