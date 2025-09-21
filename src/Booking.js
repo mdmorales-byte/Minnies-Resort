@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { bookingsAPI } from './services/api';
+// Mock booking system - no backend required
 
 const Booking = () => {
   const navigate = useNavigate();
@@ -34,7 +34,7 @@ const Booking = () => {
   const calculateCosts = () => {
     let baseCost = 0;
     switch(formData.accommodationType) {
-      case 'cottage':
+      case 'day':
         baseCost = 500;
         break;
       case 'overnight':
@@ -128,31 +128,43 @@ const Booking = () => {
     try {
       // Prepare booking data for the API
       const bookingData = {
-        guest_name: formData.name,
+        guestName: formData.name,
         email: formData.email,
         phone: formData.phone,
-        check_in: formData.checkIn,
-        check_out: formData.checkOut,
-        guests: formData.guests,
-        accommodation_type: formData.accommodationType,
-        total_amount: summary.totalCost,
-        special_requests: formData.specialRequests
+        checkIn: formData.checkIn,
+        checkOut: formData.checkOut || null,
+        guests: parseInt(formData.guests),
+        accommodationType: formData.accommodationType,
+        addOns: formData.addOns || [],
+        totalAmount: parseFloat(summary.totalCost),
+        specialRequests: formData.specialRequests || ''
       };
 
-      const response = await bookingsAPI.create(bookingData);
-      
-      if (response.booking_id) {
-        // Store booking data in localStorage for success page
-        const bookingInfo = {
-          id: response.booking_id,
-          ...bookingData,
-          addOns: formData.addOns,
-          summary: summary
-        };
-        localStorage.setItem('lastBooking', JSON.stringify(bookingInfo));
-        navigate('/booking-success');
+      // Submit booking to MongoDB API
+      const response = await fetch('/api/bookings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(bookingData)
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        if (result.errors && Array.isArray(result.errors)) {
+          // Show validation errors
+          const errorMessages = result.errors.map(err => err.msg).join('\n');
+          throw new Error(`Validation failed:\n${errorMessages}`);
+        }
+        throw new Error(result.message || 'Failed to submit booking');
+      }
+
+      if (result.success) {
+        // Navigate to success page with the booking ID
+        navigate(`/booking-success/${result.booking.bookingId}`);
       } else {
-        alert('Booking failed. Please try again.');
+        throw new Error(result.message || 'Booking submission failed');
       }
     } catch (error) {
       console.error('Booking error:', error);
@@ -164,7 +176,7 @@ const Booking = () => {
 
   const getAccommodationName = (type) => {
     switch(type) {
-      case 'cottage': return 'Day Cottage';
+      case 'day': return 'Day Cottage';
       case 'overnight': return 'Overnight Stay';
       default: return '';
     }
@@ -266,7 +278,7 @@ const Booking = () => {
                       className={errors.accommodationType ? 'error' : ''}
                     >
                       <option value="">Select accommodation</option>
-                      <option value="cottage">Day Cottage - ₱500</option>
+                      <option value="day">Day Cottage - ₱500</option>
                       <option value="overnight">Overnight Stay - ₱1,000</option>
                     </select>
                     {errors.accommodationType && <span className="error-message">{errors.accommodationType}</span>}

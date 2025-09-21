@@ -9,29 +9,28 @@ const SimpleAdminLogin = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
     
-    if (username === 'superadmin' && password === 'MinniesFarm2025!') {
-      // Use AuthContext login function
-      const success = login(username, password);
-      if (success) {
-        alert('Super Admin login successful! Redirecting to dashboard...');
-        navigate('/admin/super-dashboard');
+    try {
+      // Use AuthContext login function for MongoDB authentication
+      const result = await login(username, password);
+      
+      if (result.success) {
+        alert(`${result.isSuperAdmin ? 'Super Admin' : 'Admin'} login successful!`);
+        
+        if (result.isSuperAdmin) {
+          navigate('/admin/super-dashboard');
+        } else {
+          navigate('/admin/bookings');
+        }
       } else {
-        setError('Login failed. Please try again.');
+        setError(result.error || 'Login failed. Please check your credentials.');
       }
-    } else if (username === 'admin' && password === 'admin123') {
-      // For regular admin, we'll handle it manually since AuthContext only handles super admin
-      localStorage.setItem('minniesAuth', JSON.stringify({
-        user: { username: 'admin', email: 'staff@minniesfarmresort.com', role: 'admin' },
-        isSuperAdmin: false,
-        expiry: Date.now() + (24 * 60 * 60 * 1000)
-      }));
-      alert('Admin login successful!');
-      navigate('/admin/bookings');
-    } else {
-      setError('Invalid credentials');
+    } catch (error) {
+      console.error('Login error:', error);
+      setError('Login failed. Please try again.');
     }
   };
 

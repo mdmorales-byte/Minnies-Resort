@@ -2,7 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 import ResortImageManager from './ResortImageManager';
-import { adminAPI } from './services/api';
+import UserManagement from './UserManagement';
+import Reports from './Reports';
+// Mock admin system - uses localStorage
 
 const SuperAdminDashboard = () => {
   const { user, logout, isAuthenticated, isSuperAdmin, loading } = useAuth();
@@ -15,8 +17,28 @@ const SuperAdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setDataLoading(true);
-      const data = await adminAPI.getStats();
-      setDashboardData(data);
+      const token = user?.token;
+      
+      if (!token) {
+        console.error('No auth token available');
+        return;
+      }
+
+      const headers = {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      };
+
+      // Fetch dashboard stats
+      const response = await fetch('/api/admin/dashboard', { headers });
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          setDashboardData(result);
+        }
+      } else {
+        console.error('Failed to fetch dashboard data:', response.status);
+      }
     } catch (error) {
       console.error('Failed to fetch dashboard data:', error);
     } finally {
@@ -82,10 +104,10 @@ const SuperAdminDashboard = () => {
   }
 
   // Get stats from API data or use defaults
-  const stats = dashboardData ? {
+  const stats = dashboardData && dashboardData.stats ? {
     totalBookings: dashboardData.stats.totalBookings || 0,
-    pendingBookings: dashboardData.stats.bookingStats.pending || 0,
-    confirmedBookings: dashboardData.stats.bookingStats.confirmed || 0,
+    pendingBookings: (dashboardData.stats.bookingStats && dashboardData.stats.bookingStats.pending) || 0,
+    confirmedBookings: (dashboardData.stats.bookingStats && dashboardData.stats.bookingStats.confirmed) || 0,
     totalRevenue: dashboardData.stats.totalRevenue || 0,
     todayBookings: 0, // This would need to be calculated from recent bookings
     monthlyRevenue: 0, // This would need to be calculated from monthly trends
@@ -106,7 +128,7 @@ const SuperAdminDashboard = () => {
     heroImages: 0
   };
 
-  const recentActivities = dashboardData ? dashboardData.recentBookings.map(booking => ({
+  const recentActivities = dashboardData && dashboardData.recentBookings ? dashboardData.recentBookings.map(booking => ({
     id: booking.id,
     type: 'booking',
     title: `New booking from ${booking.guest_name}`,
@@ -115,7 +137,7 @@ const SuperAdminDashboard = () => {
     status: booking.status
   })) : [];
 
-  const revenueChart = dashboardData ? dashboardData.monthlyTrends.map(trend => ({
+  const revenueChart = dashboardData && dashboardData.monthlyTrends ? dashboardData.monthlyTrends.map(trend => ({
     month: new Date(trend.month + '-01').toLocaleString('default', { month: 'short' }),
     revenue: trend.revenue || 0
   })) : [];
@@ -145,14 +167,14 @@ const SuperAdminDashboard = () => {
       title: 'User Management',
       description: 'Manage admin users and permissions',
       icon: 'fas fa-users-cog',
-      action: () => navigate('/admin/users')
+      action: () => setActiveSection('users')
     },
     {
       id: 'analytics-dashboard',
       title: 'Analytics Dashboard',
       description: 'View reports, analytics, and business insights',
       icon: 'fas fa-chart-line',
-      action: () => navigate('/admin/dashboard')
+      action: () => setActiveSection('analytics')
     },
     {
       id: 'manage-images',
@@ -178,6 +200,18 @@ const SuperAdminDashboard = () => {
   ];
 
   // If a specific section is active, render that component
+  if (activeSection === 'users') {
+    return <UserManagement onBackToDashboard={() => setActiveSection('dashboard')} />;
+  }
+
+  if (activeSection === 'reports') {
+    return <Reports onBackToDashboard={() => setActiveSection('dashboard')} />;
+  }
+
+  if (activeSection === 'analytics') {
+    return <Reports onBackToDashboard={() => setActiveSection('dashboard')} />;
+  }
+
   if (activeSection === 'images') {
     return (
       <div className="super-admin-dashboard">
@@ -219,7 +253,7 @@ const SuperAdminDashboard = () => {
           </div>
         </div>
 
-        <ResortImageManager />
+        <ResortImageManager onBackToDashboard={() => setActiveSection('dashboard')} />
       </div>
     );
   }
@@ -372,17 +406,25 @@ const SuperAdminDashboard = () => {
             </div>
             <div className="widget-content">
               <div className="simple-chart">
-                {revenueChart.map((item, index) => (
-                  <div key={index} className="chart-bar-container">
-                    <div 
-                      className="chart-bar" 
-                      style={{ height: `${Math.max(20, (item.revenue / Math.max(...revenueChart.map(r => r.revenue), 1)) * 100)}%` }}
-                    >
-                      <span className="bar-value">₱{item.revenue.toLocaleString()}</span>
+                {revenueChart.length > 0 ? revenueChart.map((item, index) => {
+                  const maxRevenue = Math.max(...revenueChart.map(r => r.revenue), 1);
+                  const heightPercentage = Math.max(20, (item.revenue / maxRevenue) * 100);
+                  return (
+                    <div key={index} className="chart-bar-container">
+                      <div 
+                        className="chart-bar" 
+                        style={{ height: `${heightPercentage}%` }}
+                      >
+                        <span className="bar-value">₱{item.revenue.toLocaleString()}</span>
+                      </div>
+                      <div className="bar-label">{item.month}</div>
                     </div>
-                    <div className="bar-label">{item.month}</div>
-                  </div>
-                ))}
+                  );
+                }) : (
+                  <p style={{ textAlign: 'center', color: '#666', padding: '2rem' }}>
+                    No revenue data available
+                  </p>
+                )}
               </div>
             </div>
           </div>

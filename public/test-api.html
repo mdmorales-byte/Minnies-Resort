@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { margin: 10px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        #results { margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px; white-space: pre-wrap; }
+        .error { background: #f8d7da; color: #721c24; }
+        .success { background: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <h1>🔧 API Connection Test</h1>
+    <p>Testing connection between React frontend and Node.js backend...</p>
+    
+    <button onclick="testHealth()">Test Health Endpoint</button>
+    <button onclick="testLogin()">Test Admin Login</button>
+    <button onclick="testContact()">Test Contact Form</button>
+    
+    <div id="results">Click a button to test the API connection...</div>
+
+    <script>
+        async function testHealth() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = 'Testing health endpoint...';
+            
+            try {
+                const response = await fetch('/api/health');
+                const data = await response.json();
+                
+                resultsDiv.className = 'success';
+                resultsDiv.innerHTML = `✅ Health Test SUCCESS!\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                resultsDiv.className = 'error';
+                resultsDiv.innerHTML = `❌ Health Test FAILED!\n\nError: ${error.message}`;
+            }
+        }
+
+        async function testLogin() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = 'Testing admin login...';
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        username: 'admin',
+                        password: 'admin123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultsDiv.className = 'success';
+                    resultsDiv.innerHTML = `✅ Login Test SUCCESS!\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultsDiv.className = 'error';
+                    resultsDiv.innerHTML = `❌ Login Test FAILED!\n\nStatus: ${response.status}\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultsDiv.className = 'error';
+                resultsDiv.innerHTML = `❌ Login Test FAILED!\n\nError: ${error.message}`;
+            }
+        }
+
+        async function testContact() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = 'Testing contact form...';
+            
+            try {
+                const response = await fetch('/api/contacts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        name: 'Test User',
+                        email: 'test@example.com',
+                        subject: 'booking',
+                        message: 'This is a test message from the API test page.'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultsDiv.className = 'success';
+                    resultsDiv.innerHTML = `✅ Contact Test SUCCESS!\n\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    resultsDiv.className = 'error';
+                    resultsDiv.innerHTML = `❌ Contact Test FAILED!\n\nStatus: ${response.status}\nResponse:\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                resultsDiv.className = 'error';
+                resultsDiv.innerHTML = `❌ Contact Test FAILED!\n\nError: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

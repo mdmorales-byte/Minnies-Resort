@@ -1,6 +1,8 @@
 {
   "name": "minnies-farm-resort",
-  "version": "1.0.0",
+  "version": "0.1.0",
+  "private": true,
+  "proxy": "http://localhost:5000",
   "description": "Full-stack application for Minnie's Farm Resort",
   "main": "server.js",
   "scripts": {

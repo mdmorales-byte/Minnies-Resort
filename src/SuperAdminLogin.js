@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 const SuperAdminLogin = () => {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -28,8 +28,8 @@ const SuperAdminLogin = () => {
     setLoading(true);
 
     // Basic validation
-    if (!email.trim()) {
-      setError('Email is required');
+    if (!username.trim()) {
+      setError('Username is required');
       setLoading(false);
       return;
     }
@@ -41,7 +41,7 @@ const SuperAdminLogin = () => {
     }
 
     try {
-      const result = await login(email.trim(), password);
+      const result = await login(username.trim(), password);
 
       if (result.success) {
         if (result.isSuperAdmin) {
@@ -61,7 +61,7 @@ const SuperAdminLogin = () => {
   };
 
   const handleDemoLogin = (demoEmail, demoPassword) => {
-    setEmail(demoEmail);
+    setUsername(demoEmail);
     setPassword(demoPassword);
     setError('');
   };
@@ -102,22 +102,22 @@ const SuperAdminLogin = () => {
             )}
 
             <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-              <label htmlFor="email" style={{ 
+              <label htmlFor="username" style={{ 
                 display: 'block', 
                 marginBottom: '0.5rem', 
                 fontWeight: '600',
                 color: '#2c3e50'
               }}>
-                <i className="fas fa-envelope" style={{ marginRight: '0.5rem' }}></i>
-                Email
+                <i className="fas fa-user" style={{ marginRight: '0.5rem' }}></i>
+                Username
               </label>
               <input
-                type="email"
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your email"
-                autoComplete="email"
+                type="text"
+                id="username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter your username"
+                autoComplete="username"
                 disabled={loading}
                 required
                 style={{
@@ -272,11 +272,11 @@ const SuperAdminLogin = () => {
                 <p style={{ margin: '0.25rem 0', fontSize: '0.85rem', color: '#5a5a5a' }}>
                   <strong style={{ color: '#2d5016' }}>Super Admin:</strong>
                 </p>
-                <p style={{ margin: '0.25rem 0', fontSize: '0.85rem', color: '#5a5a5a' }}>Email: superadmin@minniesfarm.com</p>
+                <p style={{ margin: '0.25rem 0', fontSize: '0.85rem', color: '#5a5a5a' }}>Email: superadmin@minniesfarmresort.com</p>
                 <p style={{ margin: '0.25rem 0', fontSize: '0.85rem', color: '#5a5a5a' }}>Password: superadmin123</p>
                 <button 
                   className="demo-login-btn"
-                  onClick={() => handleDemoLogin('superadmin@minniesfarm.com', 'superadmin123')}
+                  onClick={() => handleDemoLogin('superadmin@minniesfarmresort.com', 'superadmin123')}
                   disabled={loading}
                   style={{
                     background: 'linear-gradient(135deg, #4a7c59 0%, #6b9b7a 100%)',
@@ -306,11 +306,11 @@ const SuperAdminLogin = () => {
                 <p style={{ margin: '0.25rem 0', fontSize: '0.85rem', color: '#5a5a5a' }}>
                   <strong style={{ color: '#2d5016' }}>Regular Admin:</strong>
                 </p>
-                <p style={{ margin: '0.25rem 0', fontSize: '0.85rem', color: '#5a5a5a' }}>Email: admin@minniesfarm.com</p>
+                <p style={{ margin: '0.25rem 0', fontSize: '0.85rem', color: '#5a5a5a' }}>Email: admin@minniesfarmresort.com</p>
                 <p style={{ margin: '0.25rem 0', fontSize: '0.85rem', color: '#5a5a5a' }}>Password: admin123</p>
                 <button 
                   className="demo-login-btn"
-                  onClick={() => handleDemoLogin('admin@minniesfarm.com', 'admin123')}
+                  onClick={() => handleDemoLogin('admin@minniesfarmresort.com', 'admin123')}
                   disabled={loading}
                   style={{
                     background: 'linear-gradient(135deg, #4a7c59 0%, #6b9b7a 100%)',

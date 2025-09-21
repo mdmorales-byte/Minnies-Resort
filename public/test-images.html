@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Image Manager - Minnie's Farm Resort</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f8f9fa; }
+        .container { max-width: 800px; margin: 0 auto; }
+        h1 { color: #2d5016; text-align: center; }
+        .test-section { background: white; padding: 20px; border-radius: 10px; margin: 20px 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .success { color: #155724; background: #d4edda; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .error { color: #721c24; background: #f8d7da; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        .info { color: #0c5460; background: #d1ecf1; padding: 15px; border-radius: 5px; margin: 20px 0; }
+        button { background: #2d5016; color: white; padding: 12px 24px; border: none; border-radius: 5px; cursor: pointer; margin: 10px; }
+        button:hover { background: #1a2f0d; }
+        .image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; margin-top: 20px; }
+        .image-card { border: 1px solid #ddd; border-radius: 8px; padding: 10px; background: #f9f9f9; }
+        .image-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 5px; }
+        .image-info { margin-top: 10px; font-size: 14px; }
+        #file-input { margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ Image Manager Test</h1>
+        
+        <div class="info">
+            <strong>📋 Instructions:</strong>
+            <ol>
+                <li>Login as Super Admin first</li>
+                <li>Test fetching existing images</li>
+                <li>Test uploading a new image</li>
+                <li>View uploaded images</li>
+            </ol>
+        </div>
+
+        <div class="test-section">
+            <h2>🔐 Authentication</h2>
+            <button onclick="testLogin()">Login as Super Admin</button>
+            <div id="auth-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🖼️ Image Management</h2>
+            <button onclick="testGetImages()">Get All Images</button>
+            <button onclick="testImageStats()">Get Image Stats</button>
+            <div id="image-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>📤 Upload Test</h2>
+            <input type="file" id="file-input" accept="image/*" multiple>
+            <button onclick="testUpload()">Upload Selected Images</button>
+            <div id="upload-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>🖼️ Image Gallery</h2>
+            <div id="image-gallery" class="image-grid">
+                <p>No images loaded yet. Click "Get All Images" to load.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let authToken = '';
+        let currentImages = [];
+
+        async function testLogin() {
+            const resultsDiv = document.getElementById('auth-results');
+            resultsDiv.innerHTML = '🔐 Testing super admin login...';
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: 'superadmin',
+                        password: 'superadmin123'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    authToken = data.token;
+                    resultsDiv.className = 'success';
+                    resultsDiv.innerHTML = `✅ Login Success! Welcome ${data.user.name} (${data.user.role})`;
+                } else {
+                    resultsDiv.className = 'error';
+                    resultsDiv.innerHTML = `❌ Login Failed: ${data.message}`;
+                }
+            } catch (error) {
+                resultsDiv.className = 'error';
+                resultsDiv.innerHTML = `❌ Login Error: ${error.message}`;
+            }
+        }
+
+        async function testGetImages() {
+            if (!authToken) {
+                alert('Please login first!');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('image-results');
+            resultsDiv.innerHTML = '🖼️ Fetching images...';
+            
+            try {
+                const response = await fetch('/api/images', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    currentImages = data.images || [];
+                    resultsDiv.className = 'success';
+                    resultsDiv.innerHTML = `✅ Images Loaded Successfully!<br>Total Images: ${currentImages.length}<br><pre>${JSON.stringify(data, null, 2)}</pre>`;
+                    displayImages();
+                } else {
+                    resultsDiv.className = 'error';
+                    resultsDiv.innerHTML = `❌ Get Images Failed: ${data.message}`;
+                }
+            } catch (error) {
+                resultsDiv.className = 'error';
+                resultsDiv.innerHTML = `❌ Get Images Error: ${error.message}`;
+            }
+        }
+
+        async function testImageStats() {
+            if (!authToken) {
+                alert('Please login first!');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/images/stats', {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.success) {
+                    alert(`✅ Image Stats:\nTotal Images: ${data.stats.totalImages}\nTotal Size: ${(data.stats.totalSize / 1024 / 1024).toFixed(2)} MB`);
+                } else {
+                    alert(`❌ Get Stats Failed: ${data.message}`);
+                }
+            } catch (error) {
+                alert(`❌ Get Stats Error: ${error.message}`);
+            }
+        }
+
+        async function testUpload() {
+            if (!authToken) {
+                alert('Please login first!');
+                return;
+            }
+
+            const fileInput = document.getElementById('file-input');
+            const files = fileInput.files;
+            
+            if (files.length === 0) {
+                alert('Please select at least one image file!');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('upload-results');
+            resultsDiv.innerHTML = '📤 Uploading images...';
+            
+            try {
+                for (let file of files) {
+                    const formData = new FormData();
+                    formData.append('image', file);
+                    formData.append('category', 'gallery');
+                    formData.append('description', `Test upload: ${file.name}`);
+                    formData.append('is_hero', 'false');
+
+                    const response = await fetch('/api/images/upload', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${authToken}`
+                        },
+                        body: formData
+                    });
+
+                    const data = await response.json();
+                    
+                    if (!response.ok) {
+                        throw new Error(data.message || `Failed to upload ${file.name}`);
+                    }
+                }
+
+                resultsDiv.className = 'success';
+                resultsDiv.innerHTML = `✅ Upload Success! ${files.length} image(s) uploaded successfully.`;
+                
+                // Refresh the image list
+                await testGetImages();
+                
+                // Clear the file input
+                fileInput.value = '';
+                
+            } catch (error) {
+                resultsDiv.className = 'error';
+                resultsDiv.innerHTML = `❌ Upload Error: ${error.message}`;
+            }
+        }
+
+        function displayImages() {
+            const gallery = document.getElementById('image-gallery');
+            
+            if (currentImages.length === 0) {
+                gallery.innerHTML = '<p>No images found. Try uploading some images first!</p>';
+                return;
+            }
+
+            gallery.innerHTML = currentImages.map(image => `
+                <div class="image-card">
+                    <img src="/api/images/serve/${image.filename}" alt="${image.description || 'Resort Image'}" 
+                         onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjE1MCIgdmlld0JveD0iMCAwIDIwMCAxNTAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjEwMCIgeT0iNzUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzZCNzI4MCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9Ii4zZW0iPkltYWdlIE5vdCBGb3VuZDwvdGV4dD4KPHN2Zz4K'">
+                    <div class="image-info">
+                        <strong>${image.filename}</strong><br>
+                        Category: ${image.category}<br>
+                        Size: ${(image.size / 1024).toFixed(1)} KB<br>
+                        Uploaded: ${new Date(image.uploadedAt).toLocaleDateString()}
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>

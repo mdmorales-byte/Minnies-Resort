@@ -38,11 +38,37 @@ const ContactMessages = () => {
     try {
       setDataLoading(true);
       setError('');
-      const data = await contactAPI.getAll();
-      setMessages(data.messages || []);
+      
+      // Get auth token from localStorage
+      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+      const token = authData.token;
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('/api/contacts', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch messages');
+      }
+
+      if (data.success) {
+        setMessages(data.contacts || []);
+        setError('');
+      } else {
+        throw new Error(data.message || 'Failed to fetch messages');
+      }
     } catch (error) {
       console.error('Error fetching messages:', error);
-      setError('Failed to load messages. Please try again.');
+      setError(`Failed to load messages: ${error.message}`);
     } finally {
       setDataLoading(false);
     }
@@ -72,14 +98,49 @@ const ContactMessages = () => {
 
   const updateMessageStatus = async (messageId, newStatus) => {
     try {
-      await contactAPI.updateStatus(messageId, newStatus);
-      // Refresh messages list
-      await fetchMessages();
-      setShowModal(false);
-      setSelectedMessage(null);
+      // Get auth token from localStorage
+      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+      const token = authData.token;
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`/api/contacts/${messageId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update message status');
+      }
+
+      if (data.success) {
+        // Update message status in local state
+        setMessages(prevMessages => 
+          prevMessages.map(msg => 
+            msg._id === messageId ? { ...msg, status: newStatus } : msg
+          )
+        );
+        
+        setShowModal(false);
+        setSelectedMessage(null);
+        
+        // Show success message
+        alert(`Message status updated to ${newStatus} successfully!`);
+      } else {
+        throw new Error(data.message || 'Failed to update message status');
+      }
     } catch (error) {
       console.error('Error updating message status:', error);
-      setError('Failed to update message status. Please try again.');
+      setError(`Failed to update message status: ${error.message}`);
+      alert(`Error: ${error.message}`);
     }
   };
 
@@ -89,14 +150,44 @@ const ContactMessages = () => {
     }
 
     try {
-      await contactAPI.delete(messageId);
-      // Refresh messages list
-      await fetchMessages();
-      setShowModal(false);
-      setSelectedMessage(null);
+      // Get auth token from localStorage
+      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+      const token = authData.token;
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`/api/contacts/${messageId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete message');
+      }
+
+      if (data.success) {
+        // Remove message from local state
+        setMessages(prevMessages => prevMessages.filter(msg => msg._id !== messageId));
+        
+        setShowModal(false);
+        setSelectedMessage(null);
+        
+        // Show success message
+        alert('Message deleted successfully!');
+      } else {
+        throw new Error(data.message || 'Failed to delete message');
+      }
     } catch (error) {
       console.error('Error deleting message:', error);
-      setError('Failed to delete message. Please try again.');
+      setError(`Failed to delete message: ${error.message}`);
+      alert(`Error: ${error.message}`);
     }
   };
 
@@ -112,18 +203,20 @@ const ContactMessages = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'unread': return '#ff9800';
+      case 'new': return '#ff9800';
       case 'read': return '#4caf50';
       case 'replied': return '#2196f3';
+      case 'resolved': return '#9c27b0';
       default: return '#9e9e9e';
     }
   };
 
   const getStatusIcon = (status) => {
     switch (status) {
-      case 'unread': return 'fas fa-envelope';
+      case 'new': return 'fas fa-envelope';
       case 'read': return 'fas fa-envelope-open';
       case 'replied': return 'fas fa-reply';
+      case 'resolved': return 'fas fa-check-circle';
       default: return 'fas fa-question-circle';
     }
   };
@@ -260,9 +353,10 @@ const ContactMessages = () => {
               }}
             >
               <option value="">All Statuses</option>
-              <option value="unread">Unread</option>
+              <option value="new">New</option>
               <option value="read">Read</option>
               <option value="replied">Replied</option>
+              <option value="resolved">Resolved</option>
             </select>
           </div>
 
@@ -330,7 +424,7 @@ const ContactMessages = () => {
           }}>
             {filteredMessages.map((message) => (
               <div 
-                key={message.id} 
+                key={message._id} 
                 className="message-card"
                 onClick={() => openMessageDetails(message)}
                 style={{
@@ -339,7 +433,7 @@ const ContactMessages = () => {
                   padding: '1.5rem',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  background: message.status === 'unread' ? '#f8f9fa' : 'white'
+                  background: message.status === 'new' ? '#f8f9fa' : 'white'
                 }}
                 onMouseEnter={(e) => e.target.style.borderColor = '#4a7c59'}
                 onMouseLeave={(e) => e.target.style.borderColor = '#e2e8f0'}
@@ -360,7 +454,7 @@ const ContactMessages = () => {
                       <h3 style={{ margin: 0, color: '#2c3e50' }}>
                         {message.subject}
                       </h3>
-                      {message.status === 'unread' && (
+                      {message.status === 'new' && (
                         <span style={{
                           background: '#ff9800',
                           color: 'white',
@@ -394,7 +488,7 @@ const ContactMessages = () => {
                       {message.status.charAt(0).toUpperCase() + message.status.slice(1)}
                     </div>
                     <div style={{ color: '#5a5a5a', fontSize: '0.8rem' }}>
-                      {formatDate(message.created_at)}
+                      {formatDate(message.createdAt)}
                     </div>
                   </div>
                 </div>
@@ -471,7 +565,7 @@ const ContactMessages = () => {
                   <div><strong>Name:</strong> {selectedMessage.name}</div>
                   <div><strong>Email:</strong> {selectedMessage.email}</div>
                   <div><strong>Subject:</strong> {selectedMessage.subject}</div>
-                  <div><strong>Date:</strong> {formatDate(selectedMessage.created_at)}</div>
+                  <div><strong>Date:</strong> {formatDate(selectedMessage.createdAt)}</div>
                   <div><strong>Status:</strong> 
                     <span style={{
                       background: `${getStatusColor(selectedMessage.status)}20`,
@@ -510,9 +604,9 @@ const ContactMessages = () => {
                 paddingTop: '1rem',
                 borderTop: '2px solid #e2e8f0'
               }}>
-                {selectedMessage.status === 'unread' && (
+                {selectedMessage.status === 'new' && (
                   <button
-                    onClick={() => updateMessageStatus(selectedMessage.id, 'read')}
+                    onClick={() => updateMessageStatus(selectedMessage._id, 'read')}
                     style={{
                       background: '#4caf50',
                       color: 'white',
@@ -531,7 +625,7 @@ const ContactMessages = () => {
                 
                 {selectedMessage.status === 'read' && (
                   <button
-                    onClick={() => updateMessageStatus(selectedMessage.id, 'replied')}
+                    onClick={() => updateMessageStatus(selectedMessage._id, 'replied')}
                     style={{
                       background: '#2196f3',
                       color: 'white',
@@ -549,7 +643,7 @@ const ContactMessages = () => {
                 )}
 
                 <button
-                  onClick={() => deleteMessage(selectedMessage.id)}
+                  onClick={() => deleteMessage(selectedMessage._id)}
                   style={{
                     background: '#f44336',
                     color: 'white',

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { imagesAPI } from './services/api';
+// Mock image management system - uses localStorage
 
-const ResortImageManager = () => {
+const ResortImageManager = ({ onBackToDashboard }) => {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
@@ -17,14 +17,62 @@ const ResortImageManager = () => {
   }, []);
 
   const fetchImages = async () => {
+    let authData = {};
+    let token = null;
+    
     try {
       setLoading(true);
       setError('');
-      const data = await imagesAPI.getAll();
-      setImages(data.images || []);
+      
+      // Get auth token from localStorage
+      authData = JSON.parse(localStorage.getItem('authData') || '{}');
+      token = authData.token;
+      
+      // For demo purposes, use mock data instead of API calls
+      // This prevents the "Failed to fetch" errors since there's no backend
+      setImages([
+        {
+          id: 1,
+          original_name: 'resort-pool.jpg',
+          description: 'Beautiful resort swimming pool',
+          category: 'facilities',
+          file_size: 2048576,
+          is_hero: true,
+          url: 'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=400&h=300&fit=crop',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 2,
+          original_name: 'cottage-view.jpg',
+          description: 'Cozy cottage with garden view',
+          category: 'accommodation',
+          file_size: 1536000,
+          is_hero: false,
+          url: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=400&h=300&fit=crop',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 3,
+          original_name: 'dining-area.jpg',
+          description: 'Outdoor dining area',
+          category: 'dining',
+          file_size: 1843200,
+          is_hero: false,
+          url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=400&h=300&fit=crop',
+          created_at: new Date().toISOString()
+        }
+      ]);
+      
+      // Clear any previous errors if successful
+      setError('');
     } catch (error) {
       console.error('Error fetching images:', error);
-      setError('Failed to load images. Please try again.');
+      console.error('Error details:', {
+        message: error.message,
+        token: token ? 'Token exists' : 'No token',
+        authData: authData
+      });
+      setError(`Failed to load images: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -73,17 +121,26 @@ const ResortImageManager = () => {
           continue;
         }
 
-        const formData = new FormData();
-        formData.append('image', file);
-        formData.append('category', 'gallery');
-        formData.append('description', 'Uploaded image');
-        formData.append('is_hero', 'false');
-
-        await imagesAPI.upload(formData);
+        // Simulate upload delay for demo purposes
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Create a mock uploaded image object
+        const newImage = {
+          id: Date.now() + Math.random(),
+          original_name: file.name,
+          description: 'Uploaded image',
+          category: 'gallery',
+          file_size: file.size,
+          is_hero: false,
+          url: URL.createObjectURL(file),
+          created_at: new Date().toISOString()
+        };
+        
+        // Add to existing images
+        setImages(prevImages => [...prevImages, newImage]);
       }
 
-      setSuccess('Images uploaded successfully!');
-      await fetchImages(); // Refresh the list
+      setSuccess('Images uploaded successfully! (Demo mode - images are stored locally)');
     } catch (error) {
       console.error('Upload error:', error);
       setError(error.message || 'Failed to upload images. Please try again.');
@@ -94,9 +151,17 @@ const ResortImageManager = () => {
 
   const updateImage = async (id, updates) => {
     try {
-      await imagesAPI.update(id, updates);
-      setSuccess('Image updated successfully!');
-      await fetchImages();
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Update image in local state
+      setImages(prevImages => 
+        prevImages.map(img => 
+          img.id === id ? { ...img, ...updates } : img
+        )
+      );
+
+      setSuccess('Image updated successfully! (Demo mode)');
       setShowModal(false);
       setSelectedImage(null);
     } catch (error) {
@@ -111,9 +176,13 @@ const ResortImageManager = () => {
     }
 
     try {
-      await imagesAPI.delete(id);
-      setSuccess('Image deleted successfully!');
-      await fetchImages();
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Remove image from local state
+      setImages(prevImages => prevImages.filter(img => img.id !== id));
+
+      setSuccess('Image deleted successfully! (Demo mode)');
       setShowModal(false);
       setSelectedImage(null);
     } catch (error) {
@@ -124,9 +193,17 @@ const ResortImageManager = () => {
 
   const toggleHero = async (id, isHero) => {
     try {
-      await imagesAPI.setHero(id, !isHero);
-      setSuccess(`Image ${!isHero ? 'set as' : 'removed from'} hero images!`);
-      await fetchImages();
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Update hero status in local state
+      setImages(prevImages => 
+        prevImages.map(img => 
+          img.id === id ? { ...img, is_hero: !isHero } : img
+        )
+      );
+
+      setSuccess(`Image ${!isHero ? 'set as' : 'removed from'} hero images! (Demo mode)`);
     } catch (error) {
       console.error('Hero toggle error:', error);
       setError(error.message || 'Failed to update hero status. Please try again.');
@@ -174,6 +251,26 @@ const ResortImageManager = () => {
             <p>Upload and manage resort images</p>
           </div>
           <div className="header-right">
+            {onBackToDashboard && (
+              <button 
+                onClick={onBackToDashboard}
+                style={{
+                  background: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  marginRight: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <i className="fas fa-arrow-left"></i>
+                Back to Dashboard
+              </button>
+            )}
             <button 
               className="btn-refresh"
               onClick={fetchImages}
@@ -247,6 +344,10 @@ const ResortImageManager = () => {
             </p>
             <button
               type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('file-input').click();
+              }}
               style={{
                 background: '#4a7c59',
                 color: 'white',

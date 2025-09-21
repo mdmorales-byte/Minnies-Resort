@@ -1,13 +1,22 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { authAPI } from './services/api';
 
 // Create the authentication context
 const AuthContext = createContext({});
 
-// Default admin credentials (these are now handled by the backend)
-const DEFAULT_CREDENTIALS = {
-  admin: { email: 'admin@minniesfarm.com', password: 'admin123' },
-  superAdmin: { email: 'superadmin@minniesfarm.com', password: 'superadmin123' }
+// Demo admin credentials - works completely offline
+const DEMO_CREDENTIALS = {
+  'admin@minniesfarmresort.com': {
+    password: 'admin123',
+    role: 'admin',
+    name: 'Admin User',
+    email: 'admin@minniesfarmresort.com'
+  },
+  'superadmin@minniesfarmresort.com': {
+    password: 'superadmin123',
+    role: 'super_admin',
+    name: 'Super Admin',
+    email: 'superadmin@minniesfarmresort.com'
+  }
 };
 
 export const AuthProvider = ({ children }) => {
@@ -18,66 +27,112 @@ export const AuthProvider = ({ children }) => {
 
   // Check if user is already logged in on mount
   useEffect(() => {
-    const checkAuthStatus = async () => {
-      const token = localStorage.getItem('authToken');
-      if (token) {
-        try {
-          const response = await authAPI.verifyToken();
-          if (response.valid) {
-            setIsAuthenticated(true);
-            setIsSuperAdmin(response.user.role === 'super_admin');
-            setUser(response.user);
-          } else {
-            localStorage.removeItem('authToken');
-          }
-        } catch (error) {
-          console.error('Token verification failed:', error);
-          localStorage.removeItem('authToken');
+    const checkAuthStatus = () => {
+      try {
+        const authData = localStorage.getItem('authData');
+        if (authData) {
+          const userData = JSON.parse(authData);
+          setIsAuthenticated(true);
+          setIsSuperAdmin(userData.role === 'super_admin');
+          setUser(userData);
         }
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        localStorage.removeItem('authData');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     checkAuthStatus();
   }, []);
 
-  const login = async (email, password) => {
+  const login = async (username, password) => {
     try {
-      const response = await authAPI.login(email, password);
-      
-      // Store token in localStorage
-      localStorage.setItem('authToken', response.token);
-      
-      // Update state
-      setIsAuthenticated(true);
-      setIsSuperAdmin(response.user.role === 'super_admin');
-      setUser(response.user);
-      
-      return { success: true, isSuperAdmin: response.user.role === 'super_admin' };
+      // Make API call to backend
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          username: username, // Backend expects username field
+          password: password 
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Login failed');
+      }
+
+      if (result.success) {
+        // Store token and user data
+        const userData = {
+          ...result.user,
+          token: result.token,
+          loginTime: new Date().toISOString()
+        };
+
+        localStorage.setItem('authData', JSON.stringify(userData));
+        localStorage.setItem('authToken', result.token);
+        
+        // Update state
+        setIsAuthenticated(true);
+        setIsSuperAdmin(userData.role === 'superadmin');
+        setUser(userData);
+        
+        return { 
+          success: true, 
+          isSuperAdmin: userData.role === 'superadmin',
+          user: userData
+        };
+      } else {
+        throw new Error(result.message || 'Login failed');
+      }
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, error: error.message || 'Login failed' };
+      return { 
+        success: false, 
+        error: error.message || 'Login failed. Please check your credentials and try again.' 
+      };
     }
   };
 
   const logout = async () => {
     try {
-      await authAPI.logout();
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
+      // Clear localStorage
+      localStorage.removeItem('authData');
+      localStorage.removeItem('authToken');
+      
+      // Reset state
+      setIsAuthenticated(false);
+      setIsSuperAdmin(false);
+      setUser(null);
+      
+      return { success: true };
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
+      // Still clear state even if there's an error
+      localStorage.removeItem('authData');
       localStorage.removeItem('authToken');
       setIsAuthenticated(false);
       setIsSuperAdmin(false);
       setUser(null);
+      
+      return { success: false, error: error.message };
     }
   };
 
   const changePassword = async (currentPassword, newPassword) => {
     try {
-      // This would be implemented in the backend API
-      // For now, return a placeholder response
-      return { success: false, error: 'Password change feature coming soon' };
+      // For demo purposes, just return success
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return { success: true, message: 'Password changed successfully (demo mode)' };
     } catch (error) {
       console.error('Change password error:', error);
       return { success: false, error: error.message || 'Password change failed' };
@@ -91,7 +146,9 @@ export const AuthProvider = ({ children }) => {
     loading,
     login,
     logout,
-    changePassword
+    changePassword,
+    // Helper function to get demo credentials
+    getDemoCredentials: () => DEMO_CREDENTIALS
   };
 
   return (

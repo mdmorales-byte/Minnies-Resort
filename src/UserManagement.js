@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import { adminAPI } from './services/api';
+// Mock user management system - uses localStorage
 
-const UserManagement = () => {
+const UserManagement = ({ onBackToDashboard }) => {
   const { isAuthenticated, isSuperAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
@@ -40,11 +40,37 @@ const UserManagement = () => {
     try {
       setDataLoading(true);
       setError('');
-      const data = await adminAPI.getUsers();
-      setUsers(data.users || []);
+      
+      // Get auth token from localStorage
+      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+      const token = authData.token;
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('/api/users', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch users');
+      }
+
+      if (data.success) {
+        setUsers(data.users || []);
+        setError('');
+      } else {
+        throw new Error(data.message || 'Failed to fetch users');
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
-      setError('Failed to load users. Please try again.');
+      setError(`Failed to load users: ${error.message}`);
     } finally {
       setDataLoading(false);
     }
@@ -73,7 +99,24 @@ const UserManagement = () => {
 
   const createUser = async (userData) => {
     try {
-      await adminAPI.createUser(userData);
+      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+      const token = authData.token;
+      
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to create user');
+      }
+
       setSuccess('User created successfully!');
       await fetchUsers();
       setShowCreateModal(false);
@@ -85,7 +128,24 @@ const UserManagement = () => {
 
   const updateUser = async (id, userData) => {
     try {
-      await adminAPI.updateUser(id, userData);
+      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+      const token = authData.token;
+      
+      const response = await fetch(`/api/users/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update user');
+      }
+
       setSuccess('User updated successfully!');
       await fetchUsers();
       setShowModal(false);
@@ -102,7 +162,23 @@ const UserManagement = () => {
     }
 
     try {
-      await adminAPI.deleteUser(id);
+      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+      const token = authData.token;
+      
+      const response = await fetch(`/api/users/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete user');
+      }
+
       setSuccess('User deleted successfully!');
       await fetchUsers();
       setShowModal(false);
@@ -190,6 +266,26 @@ const UserManagement = () => {
             <p>Manage admin users and permissions</p>
           </div>
           <div className="header-right">
+            {onBackToDashboard && (
+              <button 
+                onClick={onBackToDashboard}
+                style={{
+                  background: '#6b7280',
+                  color: 'white',
+                  border: 'none',
+                  padding: '0.75rem 1.5rem',
+                  borderRadius: '12px',
+                  cursor: 'pointer',
+                  marginRight: '1rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem'
+                }}
+              >
+                <i className="fas fa-arrow-left"></i>
+                Back to Dashboard
+              </button>
+            )}
             <button 
               className="btn-create"
               onClick={() => setShowCreateModal(true)}

@@ -9,11 +9,30 @@ const BookingSuccess = () => {
   useEffect(() => {
     const fetchBooking = async () => {
       try {
-        const response = await fetch(`/api/booking/${id}`);
-        const data = await response.json();
+        // Fetch booking from MongoDB API
+        const response = await fetch(`/api/bookings/${id}`);
+        const result = await response.json();
         
-        if (data.success) {
-          setBooking(data.booking);
+        if (response.ok && result.success) {
+          const bookingData = result.booking;
+          setBooking({
+            id: bookingData._id,
+            bookingId: bookingData.bookingId,
+            name: bookingData.guestName,
+            email: bookingData.email,
+            phone: bookingData.phone,
+            checkIn: bookingData.checkIn,
+            checkOut: bookingData.checkOut,
+            guests: bookingData.guests,
+            accommodationType: bookingData.accommodationType,
+            addOns: bookingData.addOns || [],
+            totalCost: bookingData.totalAmount || 0,
+            specialRequests: bookingData.specialRequests,
+            status: bookingData.status,
+            createdAt: bookingData.createdAt
+          });
+        } else {
+          console.error('Booking not found:', result.message);
         }
       } catch (error) {
         console.error('Error fetching booking:', error);

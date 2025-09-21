@@ -5,7 +5,24 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api
 
 // Helper function to get auth token from localStorage
 const getAuthToken = () => {
-  return localStorage.getItem('authToken');
+  // Try to get token from authToken first (direct storage)
+  const directToken = localStorage.getItem('authToken');
+  if (directToken) {
+    return directToken;
+  }
+  
+  // Fallback to authData (JSON storage)
+  try {
+    const authData = localStorage.getItem('authData');
+    if (authData) {
+      const userData = JSON.parse(authData);
+      return userData.token;
+    }
+    return null;
+  } catch (error) {
+    console.error('Error getting auth token:', error);
+    return null;
+  }
 };
 
 // Helper function to make API requests
@@ -155,7 +172,7 @@ export const adminAPI = {
 // Contact API
 export const contactAPI = {
   submit: async (messageData) => {
-    return apiRequest('/contact', {
+    return apiRequest('/contacts', {
       method: 'POST',
       body: JSON.stringify(messageData),
     });
@@ -163,22 +180,22 @@ export const contactAPI = {
 
   getAll: async (params = {}) => {
     const queryString = new URLSearchParams(params).toString();
-    return apiRequest(`/contact${queryString ? `?${queryString}` : ''}`);
+    return apiRequest(`/contacts${queryString ? `?${queryString}` : ''}`);
   },
 
   getById: async (id) => {
-    return apiRequest(`/contact/${id}`);
+    return apiRequest(`/contacts/${id}`);
   },
 
   updateStatus: async (id, status) => {
-    return apiRequest(`/contact/${id}/status`, {
+    return apiRequest(`/contacts/${id}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
     });
   },
 
   delete: async (id) => {
-    return apiRequest(`/contact/${id}`, {
+    return apiRequest(`/contacts/${id}`, {
       method: 'DELETE',
     });
   },
@@ -235,6 +252,93 @@ export const imagesAPI = {
   },
 };
 
+// Export API
+export const exportAPI = {
+  exportBookingsCSV: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const url = `${API_BASE_URL}/export/bookings/csv${queryString ? `?${queryString}` : ''}`;
+    const token = getAuthToken();
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to export CSV');
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `bookings-export-${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+  },
+
+  exportBookingsExcel: async (params = {}) => {
+    const queryString = new URLSearchParams(params).toString();
+    const url = `${API_BASE_URL}/export/bookings/excel${queryString ? `?${queryString}` : ''}`;
+    const token = getAuthToken();
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to export Excel');
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `bookings-export-${new Date().toISOString().split('T')[0]}.xlsx`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+  },
+
+  createBackup: async () => {
+    const url = `${API_BASE_URL}/export/backup`;
+    const token = getAuthToken();
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        ...(token && { Authorization: `Bearer ${token}` }),
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to create backup');
+    }
+
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = `minnies-resort-backup-${new Date().toISOString().split('T')[0]}.zip`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+  },
+
+  getExportStats: async () => {
+    return apiRequest('/export/stats');
+  },
+};
+
 // Health check
 export const healthAPI = {
   check: async () => {
@@ -248,6 +352,7 @@ export default {
   adminAPI,
   contactAPI,
   imagesAPI,
+  exportAPI,
   healthAPI,
 };
 

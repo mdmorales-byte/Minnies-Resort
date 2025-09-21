@@ -25,7 +25,7 @@ const AdminBookings = () => {
   // Fetch bookings from API
   useEffect(() => {
     if (isAuthenticated) {
-      fetchBookings();
+    fetchBookings();
     }
   }, [isAuthenticated]);
 
@@ -38,11 +38,37 @@ const AdminBookings = () => {
     try {
       setDataLoading(true);
       setError('');
-      const data = await bookingsAPI.getAll();
-      setBookings(data.bookings || []);
+      
+      // Get auth token from localStorage
+      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+      const token = authData.token;
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch('/api/bookings', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to fetch bookings');
+      }
+
+      if (data.success) {
+        setBookings(data.bookings || []);
+        setError('');
+      } else {
+        throw new Error(data.message || 'Failed to fetch bookings');
+      }
     } catch (error) {
       console.error('Error fetching bookings:', error);
-      setError('Failed to load bookings. Please try again.');
+      setError(`Failed to load bookings: ${error.message}`);
     } finally {
       setDataLoading(false);
     }
@@ -60,10 +86,10 @@ const AdminBookings = () => {
     if (searchTerm) {
       const term = searchTerm.toLowerCase();
       filtered = filtered.filter(booking => 
-        booking.guest_name.toLowerCase().includes(term) ||
+        booking.guestName.toLowerCase().includes(term) ||
         booking.email.toLowerCase().includes(term) ||
         booking.phone.includes(term) ||
-        booking.accommodation_type.toLowerCase().includes(term)
+        booking.accommodationType.toLowerCase().includes(term)
       );
     }
 
@@ -72,14 +98,49 @@ const AdminBookings = () => {
 
   const updateBookingStatus = async (bookingId, newStatus) => {
     try {
-      await bookingsAPI.updateStatus(bookingId, newStatus);
-      // Refresh bookings list
-      await fetchBookings();
-      setShowModal(false);
-      setSelectedBooking(null);
+      // Get auth token from localStorage
+      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+      const token = authData.token;
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`/api/bookings/${bookingId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to update booking status');
+      }
+
+      if (data.success) {
+        // Update local state with the updated booking
+        setBookings(prevBookings => 
+          prevBookings.map(booking => 
+            booking._id === bookingId ? { ...booking, status: newStatus } : booking
+          )
+        );
+        
+        setShowModal(false);
+        setSelectedBooking(null);
+        
+        // Show success message
+        alert(`Booking status updated to ${newStatus} successfully!`);
+      } else {
+        throw new Error(data.message || 'Failed to update booking status');
+      }
     } catch (error) {
       console.error('Error updating booking status:', error);
-      setError('Failed to update booking status. Please try again.');
+      setError(`Failed to update booking status: ${error.message}`);
+      alert(`Error: ${error.message}`);
     }
   };
 
@@ -89,14 +150,44 @@ const AdminBookings = () => {
     }
 
     try {
-      await bookingsAPI.delete(bookingId);
-      // Refresh bookings list
-      await fetchBookings();
-      setShowModal(false);
-      setSelectedBooking(null);
+      // Get auth token from localStorage
+      const authData = JSON.parse(localStorage.getItem('authData') || '{}');
+      const token = authData.token;
+      
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      const response = await fetch(`/api/bookings/${bookingId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to delete booking');
+      }
+
+      if (data.success) {
+        // Remove booking from local state
+        setBookings(prevBookings => prevBookings.filter(booking => booking._id !== bookingId));
+        
+        setShowModal(false);
+        setSelectedBooking(null);
+        
+        // Show success message
+        alert('Booking deleted successfully!');
+      } else {
+        throw new Error(data.message || 'Failed to delete booking');
+      }
     } catch (error) {
       console.error('Error deleting booking:', error);
-      setError('Failed to delete booking. Please try again.');
+      setError(`Failed to delete booking: ${error.message}`);
+      alert(`Error: ${error.message}`);
     }
   };
 
@@ -243,7 +334,7 @@ const AdminBookings = () => {
                 fontSize: '1rem'
               }}
             />
-          </div>
+        </div>
 
           {/* Status Filter */}
           <div>
@@ -255,9 +346,9 @@ const AdminBookings = () => {
             }}>
               Filter by Status
             </label>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              <select 
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
               style={{
                 width: '100%',
                 padding: '1rem',
@@ -267,11 +358,11 @@ const AdminBookings = () => {
               }}
             >
               <option value="">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="confirmed">Confirmed</option>
-              <option value="cancelled">Cancelled</option>
+                <option value="pending">Pending</option>
+                <option value="confirmed">Confirmed</option>
+                <option value="cancelled">Cancelled</option>
               <option value="completed">Completed</option>
-            </select>
+              </select>
           </div>
 
           {/* Results Count */}
@@ -282,8 +373,8 @@ const AdminBookings = () => {
           }}>
             <strong>{filteredBookings.length}</strong> bookings found
           </div>
-        </div>
-      </div>
+            </div>
+          </div>
 
       {/* Error Message */}
       {error && (
@@ -336,7 +427,7 @@ const AdminBookings = () => {
               width: '100%',
               borderCollapse: 'collapse'
             }}>
-              <thead>
+                <thead>
                 <tr style={{
                   background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
                   borderBottom: '2px solid #e2e8f0'
@@ -348,11 +439,11 @@ const AdminBookings = () => {
                   <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600' }}>Amount</th>
                   <th style={{ padding: '1rem', textAlign: 'left', fontWeight: '600' }}>Status</th>
                   <th style={{ padding: '1rem', textAlign: 'center', fontWeight: '600' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+                  </tr>
+                </thead>
+                <tbody>
                 {filteredBookings.map((booking) => (
-                  <tr key={booking.id} style={{
+                  <tr key={booking._id} style={{
                     borderBottom: '1px solid #e2e8f0',
                     transition: 'background-color 0.2s ease'
                   }}
@@ -362,7 +453,7 @@ const AdminBookings = () => {
                     <td style={{ padding: '1rem' }}>
                       <div>
                         <div style={{ fontWeight: '600', color: '#2c3e50' }}>
-                          {booking.guest_name}
+                          {booking.guestName}
                         </div>
                         <div style={{ fontSize: '0.9rem', color: '#5a5a5a' }}>
                           {booking.email}
@@ -375,10 +466,10 @@ const AdminBookings = () => {
                     <td style={{ padding: '1rem' }}>
                       <div>
                         <div style={{ fontWeight: '600' }}>
-                          {formatDate(booking.check_in)}
+                          {formatDate(booking.checkIn)}
                         </div>
                         <div style={{ fontSize: '0.9rem', color: '#5a5a5a' }}>
-                          to {formatDate(booking.check_out)}
+                          to {formatDate(booking.checkOut)}
                         </div>
                       </div>
                     </td>
@@ -392,7 +483,7 @@ const AdminBookings = () => {
                         fontWeight: '600',
                         textTransform: 'capitalize'
                       }}>
-                        {booking.accommodation_type}
+                        {booking.accommodationType}
                       </span>
                     </td>
                     <td style={{ padding: '1rem', textAlign: 'center' }}>
@@ -406,10 +497,10 @@ const AdminBookings = () => {
                       }}>
                         {booking.guests}
                       </span>
-                    </td>
+                      </td>
                     <td style={{ padding: '1rem', fontWeight: '600', color: '#2d5016' }}>
-                      {formatCurrency(booking.total_amount)}
-                    </td>
+                      {formatCurrency(booking.totalAmount)}
+                      </td>
                     <td style={{ padding: '1rem' }}>
                       <span style={{
                         background: `${getStatusColor(booking.status)}20`,
@@ -424,11 +515,11 @@ const AdminBookings = () => {
                         width: 'fit-content'
                       }}>
                         <i className={getStatusIcon(booking.status)}></i>
-                        {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
-                      </span>
-                    </td>
+                          {booking.status.charAt(0).toUpperCase() + booking.status.slice(1)}
+                        </span>
+                      </td>
                     <td style={{ padding: '1rem', textAlign: 'center' }}>
-                      <button
+                          <button 
                         onClick={() => openBookingDetails(booking)}
                         style={{
                           background: '#4a7c59',
@@ -446,13 +537,13 @@ const AdminBookings = () => {
                       >
                         <i className="fas fa-eye" style={{ marginRight: '0.25rem' }}></i>
                         View
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                          </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
         )}
       </div>
 
@@ -511,7 +602,7 @@ const AdminBookings = () => {
               <div>
                 <h3 style={{ color: '#2c3e50', marginBottom: '1rem' }}>Guest Information</h3>
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  <div><strong>Name:</strong> {selectedBooking.guest_name}</div>
+                  <div><strong>Name:</strong> {selectedBooking.guestName}</div>
                   <div><strong>Email:</strong> {selectedBooking.email}</div>
                   <div><strong>Phone:</strong> {selectedBooking.phone}</div>
                 </div>
@@ -521,11 +612,11 @@ const AdminBookings = () => {
               <div>
                 <h3 style={{ color: '#2c3e50', marginBottom: '1rem' }}>Booking Information</h3>
                 <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  <div><strong>Check-in:</strong> {formatDate(selectedBooking.check_in)}</div>
-                  <div><strong>Check-out:</strong> {formatDate(selectedBooking.check_out)}</div>
+                  <div><strong>Check-in:</strong> {formatDate(selectedBooking.checkIn)}</div>
+                  <div><strong>Check-out:</strong> {formatDate(selectedBooking.checkOut)}</div>
                   <div><strong>Guests:</strong> {selectedBooking.guests}</div>
-                  <div><strong>Accommodation:</strong> {selectedBooking.accommodation_type}</div>
-                  <div><strong>Total Amount:</strong> {formatCurrency(selectedBooking.total_amount)}</div>
+                  <div><strong>Accommodation:</strong> {selectedBooking.accommodationType}</div>
+                  <div><strong>Total Amount:</strong> {formatCurrency(selectedBooking.totalAmount)}</div>
                   <div><strong>Status:</strong> 
                     <span style={{
                       background: `${getStatusColor(selectedBooking.status)}20`,
@@ -543,7 +634,7 @@ const AdminBookings = () => {
               </div>
 
               {/* Special Requests */}
-              {selectedBooking.special_requests && (
+              {selectedBooking.specialRequests && (
                 <div>
                   <h3 style={{ color: '#2c3e50', marginBottom: '1rem' }}>Special Requests</h3>
                   <div style={{
@@ -552,7 +643,7 @@ const AdminBookings = () => {
                     borderRadius: '8px',
                     border: '1px solid #e2e8f0'
                   }}>
-                    {selectedBooking.special_requests}
+                    {selectedBooking.specialRequests}
                   </div>
                 </div>
               )}
@@ -567,7 +658,7 @@ const AdminBookings = () => {
                 {selectedBooking.status === 'pending' && (
                   <>
                     <button
-                      onClick={() => updateBookingStatus(selectedBooking.id, 'confirmed')}
+                      onClick={() => updateBookingStatus(selectedBooking._id, 'confirmed')}
                       style={{
                         background: '#4caf50',
                         color: 'white',
@@ -583,7 +674,7 @@ const AdminBookings = () => {
                       Confirm Booking
                     </button>
                     <button
-                      onClick={() => updateBookingStatus(selectedBooking.id, 'cancelled')}
+                      onClick={() => updateBookingStatus(selectedBooking._id, 'cancelled')}
                       style={{
                         background: '#f44336',
                         color: 'white',
@@ -603,7 +694,7 @@ const AdminBookings = () => {
                 
                 {selectedBooking.status === 'confirmed' && (
                   <button
-                    onClick={() => updateBookingStatus(selectedBooking.id, 'completed')}
+                    onClick={() => updateBookingStatus(selectedBooking._id, 'completed')}
                     style={{
                       background: '#2196f3',
                       color: 'white',
@@ -621,7 +712,7 @@ const AdminBookings = () => {
                 )}
 
                 <button
-                  onClick={() => deleteBooking(selectedBooking.id)}
+                  onClick={() => deleteBooking(selectedBooking._id)}
                   style={{
                     background: '#ff9800',
                     color: 'white',
@@ -639,9 +730,9 @@ const AdminBookings = () => {
               </div>
             </div>
           </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
   );
 };
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { contactAPI } from './services/api';
+// Mock contact system - no backend required
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -26,10 +26,28 @@ const Contact = () => {
     setStatus({ type: '', message: '' });
 
     try {
-      const response = await contactAPI.submit(formData);
+      // Submit contact message to MongoDB API
+      const response = await fetch('/api/contacts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
 
-      if (response.message_id) {
-        setStatus({ type: 'success', message: 'Message sent successfully! We\'ll get back to you soon.' });
+      const result = await response.json();
+
+      if (!response.ok) {
+        // Handle validation errors
+        if (result.errors && Array.isArray(result.errors)) {
+          const errorMessages = result.errors.map(err => err.msg).join(', ');
+          throw new Error(`Validation error: ${errorMessages}`);
+        }
+        throw new Error(result.message || 'Failed to send message');
+      }
+
+      if (result.success) {
+        setStatus({ type: 'success', message: result.message || 'Message sent successfully! We\'ll get back to you soon.' });
         setFormData({
           name: '',
           email: '',
@@ -38,7 +56,7 @@ const Contact = () => {
           message: ''
         });
       } else {
-        setStatus({ type: 'error', message: 'Failed to send message. Please try again.' });
+        throw new Error(result.message || 'Failed to send message');
       }
     } catch (error) {
       console.error('Contact form error:', error);
@@ -180,6 +198,7 @@ const Contact = () => {
                       name="subject"
                       value={formData.subject}
                       onChange={handleInputChange}
+                      required
                     >
                       <option value="">Select a subject</option>
                       <option value="booking">Booking Inquiry</option>

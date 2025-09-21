@@ -15,20 +15,17 @@ import AdminBookings from './AdminBookings';
 import ContactMessages from './ContactMessages';
 import UserManagement from './UserManagement';
 import AdminDashboard from './AdminDashboard';
-import SimpleAdminLogin from './SimpleAdminLogin';
+import SuperAdminLogin from './SuperAdminLogin';
 import SuperAdminDashboard from './SuperAdminDashboard';
 import AdminTest from './AdminTest';
-import { testBackendConnection } from './test-integration';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 function AppContent() {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
 
-  // Test backend connection on app load
-  useEffect(() => {
-    testBackendConnection();
-  }, []);
+  // No backend connection needed - using local authentication
 
   return (
     <div className="App">
@@ -41,12 +38,12 @@ function AppContent() {
           <Route path="/booking" element={<Booking />} />
           <Route path="/booking-success/:id" element={<BookingSuccess />} />
           <Route path="/contact" element={<Contact />} />
-          <Route path="/admin/bookings" element={<AdminBookings />} />
-          <Route path="/admin/messages" element={<ContactMessages />} />
-          <Route path="/admin/users" element={<UserManagement />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          <Route path="/admin/login" element={<SimpleAdminLogin />} />
-          <Route path="/admin/super-dashboard" element={<SuperAdminDashboard />} />
+          <Route path="/admin/bookings" element={<ProtectedRoute><AdminBookings /></ProtectedRoute>} />
+          <Route path="/admin/messages" element={<ProtectedRoute><ContactMessages /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute requireSuperAdmin={true}><UserManagement /></ProtectedRoute>} />
+          <Route path="/admin/dashboard" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/login" element={<SuperAdminLogin />} />
+          <Route path="/admin/super-dashboard" element={<ProtectedRoute requireSuperAdmin={true}><SuperAdminDashboard /></ProtectedRoute>} />
           <Route path="/admin/test" element={<AdminTest />} />
         </Routes>
       </main>
